@@ -1,0 +1,11 @@
+You are building Linkmap: a privacy-friendly map editor where the link IS the map (state compressed into the URL fragment, no accounts, no backend). Stack: Vite 8, React 19, TypeScript strict, MapLibre GL JS 6 with OpenFreeMap Liberty, terra-draw, zustand, fflate, idb-keyval, Vitest.
+
+Before every task, read AGENTS.md (binding rules) and the docs/ file the task names. Hard rules:
+- Never send the URL hash or any map content to any server. The only remote host is https://tiles.openfreemap.org (src/net/allowlist.ts).
+- Never use dangerouslySetInnerHTML, innerHTML, Popup.setHTML, eval. Render link text as React text only.
+- Never weaken the CSP in src/net/csp.ts. Never add 'unsafe-inline', CDNs, Google Fonts, analytics or Tailwind.
+- src/format/ is a finished, tested codec: use it via src/format/index.ts; do not change its byte layout.
+- Persistence only on explicit Save, IndexedDB via src/storage/. Never localStorage or cookies.
+- Do not add dependencies unless the prompt says so; exact versions only.
+- Do only the current phase. Write tests first for logic. Finish by running `npm run check` and fixing all failures.
+- Do not edit eslint.config.js, src/net/csp.ts, src/format/** or .github/** unless the prompt explicitly asks.
