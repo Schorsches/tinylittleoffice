@@ -1,0 +1,104 @@
+.app {
+  block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.2rem;
+  border-block-end: 1px solid var(--border);
+}
+.brand {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  margin-inline-end: auto;
+}
+.brand strong {
+  display: block;
+  font-size: 1.2rem;
+  letter-spacing: -0.04em;
+}
+.brand small {
+  display: block;
+  font-size: 0.7rem;
+}
+.language {
+  font-size: 0.8rem;
+}
+.document-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 1rem;
+  border-block-end: 1px solid var(--border);
+}
+.title-field {
+  flex: 1;
+  max-inline-size: 450px;
+}
+.title-field label {
+  margin: 0;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.title-field input {
+  border-color: transparent;
+  padding: 0.15rem 0;
+  font-size: 1rem;
+  color: var(--fg);
+  min-block-size: 30px;
+  font-weight: 600;
+}
+.badge {
+  font-size: 0.7rem;
+  background: var(--tint);
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+.toolbar {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-block-end: 1px solid var(--border);
+  overflow: auto;
+  flex-shrink: 0;
+}
+.toolbar button {
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+.toolbar button span {
+  margin-inline-end: 0.3rem;
+}
+.divider {
+  border-inline-start: 1px solid var(--border);
+  margin-inline: 0.3rem;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  flex: 1;
+  min-block-size: 0;
+}
+.workspace aside {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  overflow: auto;
+  border-inline-end: 1px solid var(--border);
+  background: var(--bg);
+}
+.sidebar-hidden {
+  grid-template-columns: 1fr;
+}
+.sidebar-hidden aside {
+  display: none;
+}
+.sidebar-content {
+  padding: 1.1rem;
+  flex: 1;
+}
