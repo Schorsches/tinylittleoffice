@@ -1,5 +1,14 @@
 # Changelog
 
+## Kartenatelier — 2026-11-01
+
+- Implemented selected design direction 1 with content outline, map toolbar and contextual inspector.
+- Added addresses, categories, service tags, display-only hours, custom colors and appearance settings.
+- Added visitor search and category/service filters, mobile map/list views and touch-visible drawing completion.
+- Added downloadable CSV template, local CSV validation and lossless native extended GeoJSON exchange.
+- Added v2 metadata links and protected snapshots while preserving all v1 codec and crypto tests.
+- Added locally hosted IBM Plex Sans and Phosphor icons; no new remote origins.
+
 ## 1.0.0 — 2026-11-01
 
 - Implemented map editing, feature descriptions and colours, undo/redo and live fragment links.

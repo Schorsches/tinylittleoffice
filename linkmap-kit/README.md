@@ -4,6 +4,13 @@ Create a map, add places, lines and areas, and share one link. The document is c
 No account, backend, API key, cookies or analytics are required. Built with React, MapLibre GL JS, Terra Draw and
 OpenFreeMap Liberty. English and German, light and dark themes, mobile layout and keyboard controls are included.
 
+## Kartenatelier
+
+The selected design uses a content outline, central map and contextual inspector. Edit addresses, categories, services,
+display-only opening hours and individual colors. Appearance controls the accent, initial view, labels, interaction
+and location button. Preview shows the visitor experience with local text, category and service filters. Sharing opens
+this visitor view; recipients can edit their own copy. New fields use v2 links while all existing v1 links remain readable.
+
 ## Use
 
 - Choose Point, Line or Area and click the map. Enter finishes a shape; Escape cancels. Shortcuts: V/P/L/A.
@@ -12,8 +19,8 @@ OpenFreeMap Liberty. English and German, light and dark themes, mobile layout an
 - Undo/redo: Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z. Pan and zoom do not add undo steps.
 - Share opens a copyable link and a locally generated QR code. Protect with a password before sharing sensitive maps.
   Keep that password separately; there is no reset service. Changing a password does not revoke already shared links.
-- Import GeoJSON or GPX locally, then replace the map or add the imported features. Export GeoJSON, GPX or KML.
-  GPX omits areas; polygon holes and unsupported GeoJSON geometry types are reported on import.
+- Import GeoJSON, CSV (download the template in Import) or GPX locally, then replace the map or add the imported features. Export GeoJSON, GPX or KML.
+  GPX omits areas and extended information; KML omits extended information. GeoJSON retains all fields; polygon holes and unsupported GeoJSON geometry types are reported on import.
 - Simplify previews a smaller vertex count and link before applying a change that can be undone.
 - Saved maps → Save on this device writes to IndexedDB. Saved maps can be opened, renamed or deleted.
   Encrypted maps are saved as ciphertext, with a generic title; passwords and keys are never saved.
@@ -29,7 +36,7 @@ No short-link service is used.
 The static host sees requests for app files, your IP address and browser information. It does not receive the URL
 fragment. OpenFreeMap receives your IP and tile requests, revealing the approximate area you view. Neither receives
 feature names, notes, imported files, map payloads or passwords. Referrers are suppressed. Geolocation runs only when
-“My location” is pressed; that camera jump does not update the link. A later manual map movement updates the camera.
+“My location” is pressed; that camera jump does not update the link. Camera movement stays local; save the start view explicitly under Appearance.
 
 Your browser history, browser sync, clipboard or another app you choose to share with may retain the complete link.
 Use private browsing and password protection where appropriate. No local database or service-worker cache is created

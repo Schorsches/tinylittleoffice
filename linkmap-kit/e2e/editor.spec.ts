@@ -39,7 +39,7 @@ test('share, password, import, save and forget work under production CSP', async
   await ready(page);
   await page.getByLabel('Map title').fill('My private map');
   await page.getByLabel('Map title').blur();
-  await page.getByRole('button', { name: 'Share ↗' }).click();
+  await page.getByRole('button', { name: 'Share', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('img', { name: 'QR code for this map' })).toBeVisible();
   await dialog.getByRole('button', { name: 'Copy link' }).click();
@@ -61,7 +61,7 @@ test('share, password, import, save and forget work under production CSP', async
   await other.getByRole('button', { name: 'Unlock map', exact: true }).click();
   await expect(other.getByLabel('Map title')).toHaveValue('My private map');
   await other.close();
-  await page.getByRole('button', { name: 'Import / export' }).click();
+  await page.getByRole('button', { name: 'Import file', exact: true }).click();
   await page.getByLabel('Import file').setInputFiles({
     name: 'walk.gpx',
     mimeType: 'application/gpx+xml',
@@ -71,6 +71,7 @@ test('share, password, import, save and forget work under production CSP', async
   });
   await page.getByRole('button', { name: 'Add to map' }).click();
   await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'File actions', exact: true }).click();
   await page.getByRole('button', { name: 'Saved maps', exact: true }).click();
   await page.getByRole('button', { name: 'Save on this device' }).click();
   await expect(page.getByRole('dialog').getByRole('status')).toContainText('Map saved on this device');
@@ -99,6 +100,7 @@ test('no storage before opt-in; responsive keyboard workflow, undo and offline s
       return p ? decodeMap(p).features : emptyDoc().features;
     })
     .toHaveLength(0);
+  await page.getByRole('button', { name: 'File actions', exact: true }).click();
   await page.getByRole('button', { name: 'Saved maps', exact: true }).click();
   await page.getByRole('button', { name: 'Enable offline app' }).click();
   await expect

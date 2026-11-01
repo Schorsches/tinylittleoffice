@@ -1,3 +1,4 @@
+import { fromCsv, csvTemplate } from '../io/csv.ts';
 import { useEffect, useState, type DragEvent } from 'react';
 import { fromGeoJson, toGeoJson, FILE_LIMIT, type ImportResult } from '../io/geojson.ts';
 import { fromGpx, toGpx, toKml } from '../io/xml.ts';
@@ -5,7 +6,11 @@ import { useStore } from '../state/store.ts';
 import { useT } from '../i18n/index.ts';
 import { Dialog } from './Dialog.tsx';
 function download(title: string, extension: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: extension === 'geojson' ? 'application/geo+json' : 'application/xml' }));
+  const url = URL.createObjectURL(
+    new Blob([text], {
+      type: extension === 'geojson' ? 'application/geo+json' : extension === 'csv' ? 'text/csv;charset=utf-8' : 'application/xml',
+    }),
+  );
   const a = document.createElement('a');
   a.href = url;
   a.download = (title.replace(/[^\p{L}\p{N}_-]/gu, '_').slice(0, 80) || 'linkmap') + '.' + extension;
@@ -15,7 +20,7 @@ function download(title: string, extension: string, text: string) {
 async function parseFile(f: File) {
   if (f.size > FILE_LIMIT) throw Error('size');
   const text = await f.text();
-  return f.name.toLowerCase().endsWith('.gpx') ? fromGpx(text) : fromGeoJson(text);
+  return f.name.toLowerCase().endsWith('.gpx') ? fromGpx(text) : f.name.toLowerCase().endsWith('.csv') ? fromCsv(text) : fromGeoJson(text);
 }
 export function Files({ close, droppedFile = null }: { close: () => void; droppedFile?: File | null }) {
   const t = useT(),
@@ -55,7 +60,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
         <p>{t('drop')}</p>
         <input
           type="file"
-          accept=".geojson,.json,.gpx"
+          accept=".geojson,.json,.gpx,.csv"
           aria-label={t('import')}
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -63,6 +68,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
           }}
         />
       </div>
+      <button onClick={() => download('linkmap-template', 'csv', csvTemplate)}>{t('downloadTemplate')}</button>
       {error && <p role="alert">{t('fileError')}</p>}
       {result && (
         <section>
@@ -73,7 +79,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
           <div className="actions">
             <button
               onClick={() => {
-                useStore.getState().replaceDoc(result.doc, useStore.getState().locker);
+                useStore.getState().commit(result.doc);
                 close();
               }}
             >

@@ -25,5 +25,6 @@ export const test = base.extend<{ privacyGuard: undefined }>({
 });
 export { expect };
 export async function ready(page: Page) {
-  await expect(page.getByRole('status').filter({ hasText: 'Select a feature' })).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.maplibregl-canvas')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.map-hint')).toHaveCount(0, { timeout: 30000 });
 }

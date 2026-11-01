@@ -1,5 +1,13 @@
 import { create } from 'zustand';
-import { emptyDoc, problems, quantize, type Feature, type MapDoc, type View, type Locker } from '../format/index.ts';
+import {
+  emptyDoc,
+  validDocument,
+  quantizeDocument,
+  type AtlasFeature as Feature,
+  type AtlasDoc as MapDoc,
+  type View,
+  type Locker,
+} from '../format/index.ts';
 export type Tool = 'select' | 'point' | 'line' | 'polygon';
 interface State {
   doc: MapDoc;
@@ -13,6 +21,12 @@ interface State {
   revision: number;
   message: string;
   lastColor: Feature['color'];
+  mode: 'edit' | 'view';
+  tab: 'content' | 'appearance';
+  search: string;
+  categoryFilter: string;
+  serviceFilter: string;
+  camera: View;
   commit(doc: MapDoc): boolean;
   addFeature(f: Feature): boolean;
   updateFeature(i: number, p: Partial<Feature>): boolean;
@@ -35,13 +49,19 @@ export const useStore = create<State>((set, get) => ({
   revision: 0,
   message: '',
   lastColor: 0,
+  mode: 'edit',
+  tab: 'content',
+  search: '',
+  categoryFilter: '',
+  serviceFilter: '',
+  camera: emptyDoc().view,
   commit(doc) {
-    if (problems(doc).length) {
+    if (!validDocument(doc)) {
       set({ message: 'limit' });
       return false;
     }
     const s = get();
-    set({ doc: quantize(doc), past: [...s.past, s.doc].slice(-100), future: [], message: '' });
+    set({ doc: quantizeDocument(doc), past: [...s.past, s.doc].slice(-100), future: [], message: '' });
     return true;
   },
   addFeature(f) {
@@ -67,24 +87,26 @@ export const useStore = create<State>((set, get) => ({
     return get().commit({ ...get().doc, title });
   },
   setView(view) {
-    const doc = { ...get().doc, view };
-    if (!problems(doc).length) set({ doc: { ...get().doc, view: quantize(doc).view } });
+    if (Object.values(view).every(Number.isFinite)) set({ camera: view });
   },
   undo() {
     const s = get(),
       doc = s.past.at(-1);
-    if (doc)
-      set({ doc: { ...doc, view: s.doc.view }, past: s.past.slice(0, -1), future: [s.doc, ...s.future].slice(0, 100), selected: null });
+    if (doc) set({ doc, past: s.past.slice(0, -1), future: [s.doc, ...s.future].slice(0, 100), selected: null });
   },
   redo() {
     const s = get(),
       doc = s.future[0];
-    if (doc) set({ doc: { ...doc, view: s.doc.view }, past: [...s.past, s.doc].slice(-100), future: s.future.slice(1), selected: null });
+    if (doc) set({ doc, past: [...s.past, s.doc].slice(-100), future: s.future.slice(1), selected: null });
   },
   replaceDoc(doc, locker = null) {
-    if (problems(doc).length) return;
+    if (!validDocument(doc)) return;
     set({
-      doc: quantize(doc),
+      doc: quantizeDocument(doc),
+      camera: doc.view,
+      search: '',
+      categoryFilter: '',
+      serviceFilter: '',
       locker,
       past: [],
       future: [],

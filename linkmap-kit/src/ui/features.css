@@ -1,92 +1,16 @@
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.section-heading span {
-  border-radius: 5px;
-  padding: 0.2rem 0.5rem;
-  background: var(--surface);
-  font-size: 0.75rem;
-}
-.section-heading h2 {
-  margin: 0;
-}
-.empty {
-  text-align: center;
-  padding: 2.5rem 0.5rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-.empty > span {
-  font-size: 3rem;
-  color: var(--accent);
-}
-.empty h3 {
-  color: var(--fg);
-}
-.feature-list {
-  list-style: none;
-  padding: 0;
-  margin-block: 1rem;
-}
-.feature-list li {
-  margin-block: 0.3rem;
-}
-.feature-list button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  inline-size: 100%;
-  text-align: start;
-  border-color: transparent;
-}
-.feature-list button > span:last-child {
-  overflow-wrap: anywhere;
-  min-inline-size: 0;
-}
-.feature-dot {
+.feature-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
   inline-size: 28px;
   block-size: 28px;
   flex-shrink: 0;
-  color: #fff;
+  border-radius: 7px;
 }
-.details {
-  border-block-start: 1px solid var(--border);
-  padding-block-start: 0.5rem;
-}
-.swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-block-start: 0.5rem;
-}
-.swatch {
-  position: relative;
-  display: grid;
-  place-items: center;
-  inline-size: 44px;
-  block-size: 44px;
-  border-radius: 8px;
-  margin: 0;
-  color: white;
-}
-.swatch input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  inline-size: 100%;
-  block-size: 100%;
-  margin: 0;
-  cursor: pointer;
-}
-.swatch:focus-within {
-  outline: 3px solid #3186ce;
-  outline-offset: 2px;
+.feature-mark .icon {
+  inline-size: 18px;
+  block-size: 18px;
+  filter: invert(1);
 }
 .color-0 {
   background: #2563eb;
@@ -112,25 +36,233 @@
 .color-7 {
   background: #334155;
 }
-.sidebar-footer {
-  border-block-start: 1px solid var(--border);
-  padding: 1rem;
-  background: var(--surface);
+.inspector {
+  border-inline-start: 1px solid var(--border);
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: auto;
 }
-.sidebar-footer button {
-  font-size: 0.72rem;
+.inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px 8px;
+  flex-shrink: 0;
 }
-.actions {
+.inspector-header h2 {
+  margin: 0;
+  font-size: 23px;
+  letter-spacing: -0.5px;
+}
+.inspector-body {
+  padding: 12px 24px 24px;
+  overflow: auto;
+}
+.inspector-body label,
+.inspector-body legend {
+  font-size: 16px;
+}
+.inspector-body > label {
+  margin-block-end: 22px;
+}
+.inspector-body label input,
+.inspector-body label textarea {
+  font-size: 16px;
+}
+.service-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 8px;
+  margin-bottom: 10px;
 }
-.link-meter {
-  font-size: 0.72rem;
-  color: var(--muted);
-  line-height: 1.5;
+.service-tag {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #f1f4f6;
+  border: 1px solid #e0e5e8;
+  border-radius: 8px;
+  padding-inline-start: 8px;
+  font-size: 14px;
+  max-inline-size: 100%;
 }
-.link-meter.long,
-.link-meter.warning {
+.service-tag > .icon {
+  inline-size: 16px;
+}
+.service-tag > button {
+  inline-size: 28px;
+  min-inline-size: 28px;
+  min-block-size: 36px;
+  block-size: 36px;
+  border: 0;
+  padding: 6px;
+  background: none;
+}
+.service-tag > button .icon {
+  inline-size: 13px;
+}
+.service-add {
+  display: flex;
+  gap: 5px;
+}
+.service-add > input {
+  min-inline-size: 0;
+  min-block-size: 40px;
+  font-size: 13px;
+}
+.service-add > button {
+  padding: 8px;
+}
+.inspector-disclosure {
+  border-block-end: 1px solid var(--border);
+  margin-bottom: 22px;
+}
+.inspector-disclosure > summary {
+  cursor: pointer;
+  min-block-size: 48px;
+  padding-block: 12px;
+  font-size: 14px;
+}
+.inspector-disclosure[open] > summary {
+  margin-bottom: 10px;
+}
+.inspector-disclosure label {
+  font-weight: 400;
+}
+.inspector-disclosure .muted {
+  font-size: 12px;
+}
+.palette {
+  margin-bottom: 16px;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 12px 16px;
+  max-inline-size: 290px;
+}
+.swatch {
+  display: grid;
+  place-items: center;
+  position: relative;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+  margin: 0;
+}
+.swatch input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.swatch .icon {
+  inline-size: 24px;
+  block-size: 24px;
+  filter: invert(1);
+}
+.swatch:has(input:checked) {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+.swatch:focus-within {
+  outline: 3px solid #347ab8;
+  outline-offset: 3px;
+}
+.palette .custom-color {
+  font-size: 13px;
+  font-weight: 400;
+}
+.delete-place {
+  border: 0;
+  border-radius: 0;
+  padding-inline: 0;
   color: var(--danger);
+  font-size: 14px;
+}
+.delete-place .icon {
+  filter: invert(23%) sepia(70%) saturate(1700%) hue-rotate(330deg);
+}
+.visitor-list {
+  padding: 26px 24px;
+}
+.visitor-list h1 {
+  font-size: 26px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  letter-spacing: -0.6px;
+}
+.visitor-list h2 {
+  font-size: 20px;
+}
+.search-label {
+  margin-block: 26px 14px;
+}
+.visitor-filters {
+  display: grid;
+  gap: 10px;
+}
+.visitor-filters select {
+  font-size: 13px;
+}
+.result-count {
+  font-size: 13px;
+  color: var(--muted);
+  margin-block: 16px;
+}
+.visitor-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.visitor-list li > button {
+  inline-size: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: start;
+  border: 0;
+  border-radius: 6px;
+  padding: 12px 6px;
+  font-size: 14px;
+}
+.visitor-list li > button span:last-child {
+  flex: 1;
+  min-inline-size: 0;
+}
+.visitor-list strong {
+  display: block;
+  font-weight: 600;
+}
+.visitor-list small {
+  display: block;
+  margin-top: 4px;
+}
+.visitor-details {
+  border-block-start: 1px solid var(--border);
+  padding-block-start: 15px;
+  margin-block-start: 20px;
+}
+.visitor-details p {
+  font-size: 14px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+}
+.feature-list {
+  list-style: none;
+  padding: 0;
+}
+.feature-list button {
+  inline-size: 100%;
+}
+.details {
+  padding: 20px;
 }

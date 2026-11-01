@@ -17,3 +17,18 @@ export { LIMITS, URL_SOFT_LIMIT, URL_HARD_WARN } from './limits.ts';
 export { LinkError } from './errors.ts';
 export { ROUTE, encodeMap, decodeMap, encodeSealed, openSealed, toHash, payloadOf } from './link.ts';
 export { newLocker, isSealed, PBKDF2_ITERATIONS, type Locker } from './seal.ts';
+export {
+  encodeDocument,
+  decodeDocument,
+  encodeProtectedDocument,
+  openProtectedDocument,
+  documentHash,
+  documentPayload,
+  validDocument,
+  quantizeDocument,
+  defaultSettings,
+  type AtlasDoc,
+  type AtlasFeature,
+  type PlaceInfo,
+  type AtlasSettings,
+} from './atlas.ts';

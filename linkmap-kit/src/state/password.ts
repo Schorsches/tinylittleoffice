@@ -1,4 +1,4 @@
-import { emptyDoc, newLocker, openSealed } from '../format/index.ts';
+import { emptyDoc, newLocker, openProtectedDocument } from '../format/index.ts';
 import { useStore } from './store.ts';
 import { flushLink } from './link.ts';
 export async function protect(password: string) {
@@ -11,7 +11,7 @@ export async function protect(password: string) {
 }
 export async function unlock(password: string) {
   const payload = useStore.getState().payload;
-  const { doc, locker } = await openSealed(payload, password);
+  const { doc, locker } = await openProtectedDocument(payload, password);
   if (useStore.getState().payload !== payload) return false;
   useStore.getState().replaceDoc(doc, locker);
   return true;

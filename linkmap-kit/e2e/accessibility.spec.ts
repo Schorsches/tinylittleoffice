@@ -10,7 +10,7 @@ test('desktop and mobile dark German UI pass automated WCAG A/AA checks; dropped
   });
   await page.locator('.map-area').dispatchEvent('drop', { dataTransfer: data });
   await page.getByRole('button', { name: 'Add to map' }).click();
-  await expect(page.locator('.feature-list li')).toHaveCount(1);
+  await expect(page.locator('.outline-group li')).toHaveCount(1);
   await page.evaluate(axe.source);
   const audit = () =>
     page.evaluate(async () => {
@@ -21,7 +21,9 @@ test('desktop and mobile dark German UI pass automated WCAG A/AA checks; dropped
   expect(await audit()).toEqual([]);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  await page.getByRole('button', { name: 'File actions', exact: true }).click();
   await page.getByLabel('Language').selectOption('de');
+  await page.getByRole('button', { name: 'Schließen', exact: true }).click();
   await expect(page.getByLabel('Kartentitel')).toBeVisible();
   expect(await audit()).toEqual([]);
 });

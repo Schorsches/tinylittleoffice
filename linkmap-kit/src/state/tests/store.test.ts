@@ -16,6 +16,18 @@ describe('document actions', () => {
     s().removeFeature(0);
     expect(s().doc.features).toHaveLength(0);
   });
+  it('undoes an explicitly saved start view while panning stays transient', () => {
+    const s = useStore.getState;
+    const original = s().doc.view;
+    s().setView({ ...original, lng: 20 });
+    expect(s().doc.view).toEqual(original);
+    s().commit({ ...s().doc, view: s().camera });
+    expect(s().doc.view.lng).toBe(20);
+    s().undo();
+    expect(s().doc.view).toEqual(original);
+    s().redo();
+    expect(s().doc.view.lng).toBe(20);
+  });
   it('caps history and excludes camera changes', () => {
     const s = useStore.getState;
     for (let i = 0; i < 110; i++) s().setTitle(String(i));

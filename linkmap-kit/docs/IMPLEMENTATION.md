@@ -21,8 +21,8 @@ are only active after copying it to a standalone repository.
 - Imported content and labels are rendered only as React text or MapLibre text fields. No HTML sinks are introduced.
 - Protected saved records use a generic title to avoid exposing a map's title outside its ciphertext.
 - Text edits commit after a 500 ms typing pause or on blur. All features also have editable coordinate text for a full
-  keyboard alternative to dragging. Feature lists support arrow-key navigation.
-- Geolocation camera movement is excluded from link sync; subsequent manual movement resumes camera updates.
+  keyboard alternative to dragging. Feature lists use native buttons with Tab/Enter navigation.
+- Camera movement is transient; Appearance explicitly commits the start view. Geolocation never commits a location.
 
 ## Validation
 
@@ -39,7 +39,7 @@ keyboard input and opt-in offline startup.
 `npm run build` enforces the 90 KiB initial JavaScript and 15 KiB total CSS budgets and emits `_headers`, a CSP meta,
 manifest and versioned app-shell service worker. The frozen golden link continues to round-trip byte-for-byte.
 
-## Verified results (2026-11-01)
+## Baseline results before Kartenatelier (2026-11-01)
 
 - `npm run check`: 40 tests in 12 files; TypeScript, ESLint and Prettier pass.
 - Production browser checks cover real OpenFreeMap under CSP, including desktop and mobile German dark mode axe
@@ -60,3 +60,15 @@ manifest and versioned app-shell service worker. The frozen golden link continue
   downloadable background map. No search/geocoder or routing service has been added.
 - Browser link capacity and messaging limits vary; warnings are guidance, not delivery guarantees.
 - New passwords cannot revoke old shared links. Local saves are device-specific and may be cleared by the browser.
+
+## Selected Kartenatelier design
+
+Three-column desktop editor and responsive mobile map/list workflow, contextual metadata editor, appearance controls,
+visitor search/category/service filters, CSV template import and version-2 links are implemented. Hours are display
+text; there is no automatic open-now evaluation. No address geocoding or remote search is added. The earlier design
+proposal for a richer normalized import profile and AI transformation prompt remains a future extension; the supplied
+CSV template and native GeoJSON are the supported exchange formats today. See `../design-qa.md` for current evidence.
+
+Current Kartenatelier validation: `npm run check` passes 49 tests in 15 files, TypeScript, ESLint and Prettier.
+All 9 production browser tests pass; the final typography change was followed by another passing desktop/mobile axe
+check. Production build passes at 89.1 KiB initial JavaScript and approximately 14.1 KiB total CSS gzip.
