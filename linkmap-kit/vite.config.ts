@@ -1,5 +1,7 @@
 /// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react';
+import { createHash } from 'node:crypto';
+import { offlineWorker } from './src/net/offline.ts';
 import { defineConfig, type Plugin } from 'vite';
 import { CSP_META, headersFile } from './src/net/csp.ts';
 
@@ -18,9 +20,30 @@ function security(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), security()],
+  base: process.env.LINKMAP_BASE || '/',
+  plugins: [
+    react(),
+    security(),
+    {
+      name: 'linkmap-offline',
+      apply: 'build',
+      generateBundle(_, bundle) {
+        const files = [
+          'index.html',
+          'icon.svg',
+          'icon-192.png',
+          'icon-512.png',
+          'manifest.webmanifest',
+          ...Object.keys(bundle).filter((f) => /\.(js|css)$/.test(f)),
+        ];
+        const version = createHash('sha256').update(files.join('|')).digest('hex').slice(0, 12);
+        this.emitFile({ type: 'asset', fileName: 'sw.js', source: offlineWorker(files, version) });
+      },
+    },
+  ],
   build: {
     target: 'es2022',
+    manifest: true,
     // No source maps in production: smaller deploy, nothing extra to audit. Turn on locally when debugging.
     sourcemap: false,
     // Vite's modulepreload polyfill is an inline script, which the CSP forbids; every supported browser has it natively.

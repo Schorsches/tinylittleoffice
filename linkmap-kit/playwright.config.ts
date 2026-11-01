@@ -6,6 +6,10 @@ export default defineConfig({
   timeout: 60_000,
   use: {
     baseURL: 'http://localhost:4173',
+    locale: 'en-US',
+    ...(process.env.LINKMAP_PROXY
+      ? { proxy: { server: process.env.LINKMAP_PROXY, bypass: 'localhost,127.0.0.1' }, ignoreHTTPSErrors: true }
+      : {}),
     ...devices['Desktop Chrome'],
     // CHROMIUM_PATH: use a preinstalled browser instead of 'npx playwright install'. Software WebGL for headless CI.
     launchOptions: {

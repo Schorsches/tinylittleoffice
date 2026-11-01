@@ -1,0 +1,136 @@
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-heading span {
+  border-radius: 5px;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface);
+  font-size: 0.75rem;
+}
+.section-heading h2 {
+  margin: 0;
+}
+.empty {
+  text-align: center;
+  padding: 2.5rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.empty > span {
+  font-size: 3rem;
+  color: var(--accent);
+}
+.empty h3 {
+  color: var(--fg);
+}
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin-block: 1rem;
+}
+.feature-list li {
+  margin-block: 0.3rem;
+}
+.feature-list button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  inline-size: 100%;
+  text-align: start;
+  border-color: transparent;
+}
+.feature-list button > span:last-child {
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+}
+.feature-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  inline-size: 28px;
+  block-size: 28px;
+  flex-shrink: 0;
+  color: #fff;
+}
+.details {
+  border-block-start: 1px solid var(--border);
+  padding-block-start: 0.5rem;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-start: 0.5rem;
+}
+.swatch {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 8px;
+  margin: 0;
+  color: white;
+}
+.swatch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.swatch:focus-within {
+  outline: 3px solid #3186ce;
+  outline-offset: 2px;
+}
+.color-0 {
+  background: #2563eb;
+}
+.color-1 {
+  background: #dc2626;
+}
+.color-2 {
+  background: #157638;
+}
+.color-3 {
+  background: #9a5404;
+}
+.color-4 {
+  background: #7c3aed;
+}
+.color-5 {
+  background: #08778c;
+}
+.color-6 {
+  background: #b51e60;
+}
+.color-7 {
+  background: #334155;
+}
+.sidebar-footer {
+  border-block-start: 1px solid var(--border);
+  padding: 1rem;
+  background: var(--surface);
+}
+.sidebar-footer button {
+  font-size: 0.72rem;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.link-meter {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.link-meter.long,
+.link-meter.warning {
+  color: var(--danger);
+}

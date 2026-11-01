@@ -1,83 +1,79 @@
-# Linkmap: implementation kit for Bolt
+# Linkmap
 
-Linkmap is a privacy-friendly map maker. Draw pins, routes and areas on an OpenFreeMap Liberty map (MapLibre GL JS) and
-share them as a link. **The link is the map**: it is compressed into the URL fragment, which browsers never send to a
-server. There's no sign-up, no backend and no tracking. The design follows Tiny Little Office's security model.
+Create a map, add places, lines and areas, and share one link. The document is compressed into the URL fragment.
+No account, backend, API key, cookies or analytics are required. Built with React, MapLibre GL JS, Terra Draw and
+OpenFreeMap Liberty. English and German, light and dark themes, mobile layout and keyboard controls are included.
 
-This folder is a complete starting project plus the instructions a coding agent (Bolt.new, but also Claude Code,
-Cursor and others) needs to build the app phase by phase.
+## Use
 
-## What's in the kit
+- Choose Point, Line or Area and click the map. Enter finishes a shape; Escape cancels. Shortcuts: V/P/L/A.
+- Select a feature to change its name, note or colour. Drag it or its vertices. Exact coordinates can also be edited
+  in the details panel; “Add at map centre” provides a keyboard alternative to pointer drawing.
+- Undo/redo: Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z. Pan and zoom do not add undo steps.
+- Share opens a copyable link and a locally generated QR code. Protect with a password before sharing sensitive maps.
+  Keep that password separately; there is no reset service. Changing a password does not revoke already shared links.
+- Import GeoJSON or GPX locally, then replace the map or add the imported features. Export GeoJSON, GPX or KML.
+  GPX omits areas; polygon holes and unsupported GeoJSON geometry types are reported on import.
+- Simplify previews a smaller vertex count and link before applying a change that can be undone.
+- Saved maps → Save on this device writes to IndexedDB. Saved maps can be opened, renamed or deleted.
+  Encrypted maps are saved as ciphertext, with a generic title; passwords and keys are never saved.
+- Saved maps → Enable offline app installs an app-shell service worker only after this explicit opt-in.
+  Map tiles are not precached and require an internet connection. “Forget everything” clears saved maps and app caches.
 
-| Path                   | What                                                                             | State                        |
-| ---------------------- | -------------------------------------------------------------------------------- | ---------------------------- |
-| `AGENTS.md`            | Binding rules for any coding agent                                               | ready                        |
-| `.bolt/prompt`         | Bolt's project-level system prompt (short form of AGENTS.md)                     | ready                        |
-| `docs/PRD.md`          | Product requirements, scope, non-goals, success criteria                         | ready                        |
-| `docs/ARCHITECTURE.md` | Modules, data flow, state shape, map layers, budgets                             | ready                        |
-| `docs/FORMAT.md`       | Exact link format v1 with golden vector                                          | ready                        |
-| `docs/SECURITY.md`     | Threat model, CSP, privacy statement, PR checklist                               | ready                        |
-| `docs/ACCEPTANCE.md`   | Definition of Done plus a checklist per phase                                    | ready                        |
-| `docs/DECISIONS.md`    | ADRs (why fragment, why OpenFreeMap, why no server, …)                           | ready                        |
-| `prompts/00…10`        | One Bolt prompt per phase, small and verifiable                                  | ready                        |
-| `prompts/RECOVERY.md`  | Corrective prompts for when the agent drifts                                     | ready                        |
-| `src/format/`          | **Finished** link codec: model, binary v1, deflate, base64url, AES-GCM seal      | done, 24 tests incl. fuzzing |
-| `src/net/`             | Host allow-list, generated CSP and security headers                              | done, tested                 |
-| `src/map/maplibre.ts`  | Lazy MapLibre loader (same-origin worker, request guard)                         | done                         |
-| `src/App.tsx`          | Placeholder that opens a link and shows the map                                  | replaced in phase 01         |
-| `eslint.config.js`     | Security and architecture guardrails (no HTML sinks, no fetch outside `net/`, …) | done                         |
-| `e2e/`                 | Playwright: production CSP, no foreign hosts, no fragment leak                   | done, 3 tests                |
-| `.github/`             | CI (check, build, audit, e2e) and Dependabot                                     | done                         |
+Whoever has an unprotected link has the complete map. The link is a snapshot: later edits do not change links you
+already sent. Large links may be cut by messaging apps; the length indicator warns at 2,048 and 8,000 characters.
+No short-link service is used.
 
-The security-critical, deterministic parts (byte format, crypto, CSP, guardrails) were written by hand and tested,
-so the agent doesn't generate them. The agent builds the UI and features against those fixed contracts.
+## Privacy
 
-## Using it with Bolt.new
+The static host sees requests for app files, your IP address and browser information. It does not receive the URL
+fragment. OpenFreeMap receives your IP and tile requests, revealing the approximate area you view. Neither receives
+feature names, notes, imported files, map payloads or passwords. Referrers are suppressed. Geolocation runs only when
+“My location” is pressed; that camera jump does not update the link. A later manual map movement updates the camera.
 
-1. **Make it its own repository.** Copy this folder's contents (including `.bolt/`, `.github/`, `.npmrc` and
-   `.gitignore`) into a new, empty GitHub repo, e.g. `linkmap`, and push.
-2. **Open it in Bolt** at `https://bolt.new/~/github.com/<you>/linkmap`, or start a Bolt project and upload the folder.
-   Bolt uses `.bolt/prompt` as its project instructions. If your Bolt workspace doesn't pick it up, paste the file's
-   contents into the project's knowledge or system-prompt settings.
-3. **Run the prompts in order.** Paste the contents of `prompts/00-orient.md`, then `01`, `02`, … one per message.
-   Use Bolt's discussion or plan mode for `00`.
-4. **After each phase**:
-   - Make sure Bolt ran `npm run check` and it's green. If not, use a prompt from `prompts/RECOVERY.md`.
-   - Click through the app in the preview using the phase's checklist in `docs/ACCEPTANCE.md`.
-   - Check the diff: no changes to `src/format/**`, `src/net/csp.ts`, `eslint.config.js` or `.github/**`.
-   - Commit or sync to GitHub (Bolt's GitHub integration), so CI runs the e2e tests that Bolt can't run.
-5. **Release**: after phase 10, deploy `dist/` to Cloudflare Pages or Netlify (they apply `dist/_headers`).
+Your browser history, browser sync, clipboard or another app you choose to share with may retain the complete link.
+Use private browsing and password protection where appropriate. No local database or service-worker cache is created
+before an explicit save/open-saved/offline action. Language changes remain in memory; Save also records the language.
 
-Tips:
+## Development
 
-- One phase per message. Large prompts make agents skip requirements.
-- If a phase is too big for one go, split it: "Do only the files `src/state/*` of prompt 01 now."
-- Start a fresh chat for each phase if Bolt's context gets long. AGENTS.md and the docs carry the context.
-- Keep `docs/` up to date when you change a decision (add an ADR). The agent treats the docs as truth.
-
-## Commands
+Node 22 or later (CI uses 24).
 
 ```sh
-npm install
-npm run dev        # dev server (no CSP in dev)
-npm run check      # typecheck + ESLint + Prettier + unit tests
-npm run build      # production build with CSP meta and dist/_headers
-npm run preview    # serve the build: CSP active
-npm run test:e2e   # Playwright against the build (locally or in CI; set CHROMIUM_PATH to use an installed Chromium)
+cd linkmap-kit # when working in Schorsches/tinylittleoffice
+npm ci --ignore-scripts
+npm run dev
+npm run check      # types, security lint, formatting, unit and component tests
+npm run build      # production CSP, security headers, offline worker and size checks
+npm run test:e2e   # real Chromium, real OpenFreeMap; production build
 ```
 
-Node 22+.
+Install Chromium once with `npx playwright install chromium`. `CHROMIUM_PATH` can select an existing browser;
+`LINKMAP_PROXY` optionally configures the test browser's proxy. These options affect tests only.
+The initial app JavaScript budget is 90 KiB gzip; MapLibre, Terra Draw, import/export, saved maps and QR code UI load
+separately. CSS including MapLibre is limited to 15 KiB gzip.
 
-## Verified state of the kit (2026-10-31)
+The frozen `src/format/` reference codec, crypto, allow-list and production CSP remain unchanged. See `AGENTS.md`,
+`docs/FORMAT.md`, `docs/SECURITY.md` and `docs/IMPLEMENTATION.md`. The original implementation prompts remain as design
+history. Development mode does not enforce production CSP; use build + preview for security verification.
 
-- `npm run check`: typecheck, lint and format clean, with 24 unit tests passing (round-trip and stability property
-  tests, 4,000 fuzz cases, zip bomb, seal).
-- `npm run build`: the entry chunk is 74 kB gzipped and MapLibre is 298 kB gzipped (lazy, separate). The CSP meta and
-  `_headers` are emitted.
-- `npm run test:e2e`: the golden link renders in Chromium under the production CSP with zero console errors. Only
-  `tiles.openfreemap.org` is contacted, and the fragment never appears in any request.
+## Static hosting
+
+Build output is the self-contained `dist/` directory. No environment secrets or backend are required.
+
+- **Cloudflare Pages:** root directory `linkmap-kit` in this repository, build `npm run build`, output `dist`.
+  If extracted into its own repository, leave root directory empty. The generated `_headers` applies security headers.
+- **Netlify:** base directory `linkmap-kit`, build `npm run build`, publish `dist`. `_headers` is generated automatically.
+- **GitHub Pages:** set `LINKMAP_BASE=/tinylittleoffice/` (or the actual Pages subpath) at build time, then upload
+  `dist` with your Pages deployment workflow. The manifest, worker and assets support this base path. Pages applies
+  only the CSP meta tag, **not** `_headers`; frame-ancestors, HSTS and other response headers need a configurable host.
+- **nginx/other hosts:** serve `dist` over HTTPS. Translate `dist/_headers` into your host's response-header syntax.
+  Serve `sw.js` and `index.html` with revalidation so updates become available. No SPA rewrite is required for fragment links.
+
+No deployment is performed by this repository's Linkmap CI job. The app can also be copied into a separate repository,
+including its own `.github`, `.npmrc`, lockfile and documentation.
 
 ## Licence and attribution
 
-MIT. The map is © OpenFreeMap, © OpenMapTiles, and data © OpenStreetMap contributors (ODbL). The attribution is
-shown on the map and must stay visible.
+MIT. Background map: © OpenFreeMap, © OpenMapTiles, data © OpenStreetMap contributors (ODbL). Attribution remains
+visible in MapLibre's control. Report security issues privately through GitHub Security Advisories.

@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { test, expect } from './fixtures.ts';
 
 /** Collects CSP violations and console errors; every test asserts there are none. */
 function watch(page: Page) {
@@ -19,7 +20,7 @@ test('opens a map link under the production CSP without violations', async ({ pa
   const hosts = new Set<string>();
   page.on('request', (r) => hosts.add(new URL(r.url()).host));
   await page.goto('/' + LISBON);
-  await expect(page.getByText('Saturday in Lisbon')).toBeVisible();
+  await expect(page.getByLabel('Map title')).toHaveValue('Saturday in Lisbon');
   await expect(page.locator('.maplibregl-canvas')).toBeVisible();
   await page.waitForLoadState('networkidle');
   expect(problems).toEqual([]);
