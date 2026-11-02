@@ -1,10 +1,10 @@
 name: Linkmap
 on:
   pull_request:
-    paths: ['linkmap-kit/**', '.github/workflows/linkmap.yml']
+    paths: ['linkmap-kit/**', '.github/workflows/linkmap.yml', 'scripts/release-age.mjs', 'scripts/tests/release-age.test.mjs']
   push:
     branches: [main]
-    paths: ['linkmap-kit/**', '.github/workflows/linkmap.yml']
+    paths: ['linkmap-kit/**', '.github/workflows/linkmap.yml', 'scripts/release-age.mjs', 'scripts/tests/release-age.test.mjs']
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,6 +24,8 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: linkmap-kit/package-lock.json
+      - name: Verify seven-day package release age
+        run: node ../scripts/release-age.mjs
       - run: npm ci --ignore-scripts
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run check

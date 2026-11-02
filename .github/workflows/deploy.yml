@@ -60,6 +60,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Verify seven-day package release age
+        run: node scripts/release-age.mjs
       - run: npm ci
       - name: Chromium and WebKit, with what they need
         run: npx playwright install --with-deps chromium webkit
@@ -100,6 +102,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Verify seven-day package release age
+        run: node scripts/release-age.mjs
       - run: npm ci
       - name: Build
         run: npm run build

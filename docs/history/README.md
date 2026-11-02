@@ -15,3 +15,5 @@ each was written, and name things that have since changed or gone. The current d
 - [reviews/](reviews/2026-10-11.md): the reviews of the tree, and what each found.
 
 The tree before the rebuild keeps its whole history in the repository, tagged `v0-before-rebuild`.
+
+- [Linkmap repository review, 2026-11-01](reviews/linkmap-2026-11-01.md): main/branch differences, CI evidence and the dependency-age audit.

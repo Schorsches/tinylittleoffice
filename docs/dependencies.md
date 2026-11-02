@@ -37,10 +37,10 @@ vendored: every byte of code comes from npm through the committed lockfile; the 
 | `@mapbox/tiny-sdf` | 2.3.0 | BSD-2-Clause | `maplibre-gl` | none |
 | `@mapbox/unitbezier` | 1.0.0 | BSD-2-Clause | `maplibre-gl` | none |
 | `@mapbox/vector-tile` | 3.0.0 | BSD-3-Clause | `maplibre-gl` | none |
-| `@maplibre/geojson-vt` | 6.2.0 | ISC | `maplibre-gl` | none |
+| `@maplibre/geojson-vt` | 6.3.0 | ISC | `maplibre-gl` | none |
 | `@maplibre/maplibre-gl-style-spec` | 26.4.4 | ISC | `maplibre-gl` | none |
 | `@maplibre/mlt` | 1.3.0 | (MIT OR Apache-2.0) | `maplibre-gl` | none |
-| `@maplibre/vt-pbf` | 4.3.2 | MIT | `maplibre-gl` | none |
+| `@maplibre/vt-pbf` | 4.3.3 | MIT | `maplibre-gl` | none |
 | `@types/geojson` | 7946.0.16 | MIT | `maplibre-gl` | none |
 | `@types/trusted-types` | 2.0.7 | MIT | `lit` | none |
 | `bidi-js` | 1.1.0 | MIT | `maplibre-gl` | none |
@@ -106,7 +106,7 @@ the picker; neither source is a dependency.
 ## For building and testing
 
 None of these reaches the site; they build it, check it and deploy it. With what they bring, the lockfile
-holds 197 packages for development.
+holds 198 packages for development.
 
 | Package | Version | License | The native API it beat, and why | Adds |
 | --- | --- | --- | --- | --- |

@@ -20,6 +20,7 @@ siblings, one an app; the kit's and the kernel's files each begin by saying what
 - [crypto/password.md](crypto/password.md): a password on a document, byte by byte, with test vectors.
 - [crypto/short-links.md](crypto/short-links.md): a short link, byte by byte: the cipher, the key in the fragment, what the service stores and for how long.
 - [network.md](network.md): what leaves your browser: every request the site can make, when, what it carries, what stops it (generated).
+- [dependency-release-age.md](dependency-release-age.md): the seven-day minimum for every locked npm version, pre-install checks and update procedure.
 - [dependencies.md](dependencies.md): every package, its version and license, the native API it beat, and the bytes it adds (generated).
 
 ## Running it

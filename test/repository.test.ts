@@ -80,7 +80,9 @@ test('CI runs, on every push and pull request, every check the deploy runs, in C
   expect(checks.length).toBeGreaterThanOrEqual(7);
   for (const cmd of checks) expect(runs, cmd).toContain(cmd);
   for (const cmd of ['npm ci', 'npx playwright install --with-deps chromium webkit', 'npm run lint']) expect(runs, cmd).toContain(cmd);
-  expect(runs.indexOf('npm ci')).toBe(0);
+  expect(runs.indexOf('node scripts/release-age.mjs')).toBeGreaterThanOrEqual(0);
+  expect(runs.indexOf('node scripts/release-age.mjs')).toBeLessThan(runs.indexOf('npm ci'));
+  expect(runs.indexOf('node --test scripts/tests/release-age.test.mjs')).toBeLessThan(runs.indexOf('npm ci'));
   expect(runs.join('\n')).toMatch(/apt-get install -y[^\n]*fonts-noto-core fonts-noto-cjk fonts-noto-extra/);
 });
 

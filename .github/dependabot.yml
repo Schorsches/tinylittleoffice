@@ -7,9 +7,19 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       site:
         dependency-type: production
       tools:
         dependency-type: development
+
+  - package-ecosystem: npm
+    directory: /linkmap-kit
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
