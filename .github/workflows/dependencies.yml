@@ -29,6 +29,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Verify seven-day package release age
+        run: node scripts/release-age.mjs
       - run: npm ci --ignore-scripts
       - run: npm run docs:deps
       - name: Commit the page, and run CI on that commit

@@ -26,8 +26,11 @@ Read this file completely before every task. If a request conflicts with a rule 
    only. Never store, log or prefill them. Never roll your own crypto.
 8. **No new dependencies** unless the prompt asks for one. Pin exact versions (`.npmrc` has `save-exact`). Never add
    packages with install scripts, HTTP clients, UI kits over 50 kB gzipped, or telemetry SDKs.
-9. **Attribution stays visible**: OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors (MapLibre's
-   attribution control). Don't hide it.
+9. **Release age**: every exact package version, including development, optional and transitive packages, must be
+   at least seven full days old. Run `node ../scripts/release-age.mjs` before installation. Missing registry timestamps
+   block installation. Follow the root `AGENTS.md` and `docs/dependency-release-age.md`.
+10. **Attribution stays visible**: OpenFreeMap © OpenMapTiles, data © OpenStreetMap contributors (MapLibre's
+    attribution control). Don't hide it.
 
 ## 2. Architecture (details: docs/ARCHITECTURE.md)
 
