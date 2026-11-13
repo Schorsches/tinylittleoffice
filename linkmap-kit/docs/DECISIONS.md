@@ -54,3 +54,15 @@ host is one deliberate change, reviewed through this file.
 
 **Context**: search sends what the user types (often an address) to a third party. **Decision**: none in v1. Users
 pan and zoom or import files. **Consequences**: less convenient, but private. Revisit with a self-hosted Photon (opt-in).
+
+## ADR-010: Kartenatelier metadata in an explicit v2 document
+
+The selected design needs addresses, categories, services, display-only hours, custom feature colors and map settings.
+Keep the v1 codec, golden vector and crypto unchanged. Add a bounded JSON envelope with format byte 2 using existing
+compression, validation limits and WebCrypto sealing. Dispatch old and new links in the public format adapter.
+This favors transparent validation and forward evolution over the smaller specialized v1 layout. Larger links are
+visible in the existing meter. A new schema requires a new version rather than silently changing v2.
+
+Visitor mode adds local search and filters without sending input to a service. The shared prefix selects that UI;
+it cannot enforce permissions. Panning changes only the transient camera; the author explicitly saves the start view.
+Local geolocation never writes coordinates into the document. No new remote origins or persistent stores are added.

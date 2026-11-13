@@ -1,7 +1,7 @@
 import type { Map, GeoJSONSource, ExpressionSpecification } from 'maplibre-gl';
-import { PALETTE, type MapDoc } from '../format/index.ts';
+import { type AtlasDoc as MapDoc } from '../format/index.ts';
 import { toGeoJson } from './geojson.ts';
-const color: ExpressionSpecification = ['to-color', ['at', ['get', 'color'], ['literal', [...PALETTE]]]];
+const color: ExpressionSpecification = ['to-color', ['get', 'fillColor']];
 export function installLayers(map: Map) {
   map.addSource('linkmap', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addLayer({
@@ -23,7 +23,7 @@ export function installLayers(map: Map) {
     source: 'linkmap',
     type: 'circle',
     filter: ['==', ['get', 'kind'], 'point'],
-    paint: { 'circle-color': color, 'circle-radius': 7, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 },
+    paint: { 'circle-color': color, 'circle-radius': 7, 'circle-stroke-color': ['get', 'strokeColor'], 'circle-stroke-width': 2 },
   });
   map.addLayer({
     id: 'linkmap-label',
@@ -39,8 +39,10 @@ export function installLayers(map: Map) {
     paint: { 'text-color': '#172033', 'text-halo-color': '#ffffff', 'text-halo-width': 2 },
   });
 }
-export function updateLayers(map: Map, doc: MapDoc, selected: number | null) {
-  (map.getSource('linkmap') as GeoJSONSource | undefined)?.setData(toGeoJson(doc));
+export function updateLayers(map: Map, doc: MapDoc, selected: number | null, visible?: number[]) {
+  (map.getSource('linkmap') as GeoJSONSource | undefined)?.setData(toGeoJson(doc, visible));
+  if (map.getLayer('linkmap-label'))
+    map.setLayoutProperty('linkmap-label', 'visibility', doc.settings?.showLabels === false ? 'none' : 'visible');
   if (map.getLayer('linkmap-line'))
     map.setPaintProperty('linkmap-line', 'line-width', ['case', ['==', ['get', 'i'], selected ?? -1], 6, 3]);
   if (map.getLayer('linkmap-point'))

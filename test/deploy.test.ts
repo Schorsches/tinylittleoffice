@@ -76,7 +76,21 @@ test('a tag v* deploys: the checks and both Workers by npm run deploy with the t
   expect(release.steps.some((s) => s.uses?.startsWith('actions/attest-build-provenance@'))).toBe(true);
   expect(JSON.stringify(release)).not.toMatch(/secrets\.(CLOUDFLARE|NPM)/);
   // One workflow makes a release: the old release workflow is folded into this one.
-  expect(readdirSync(join(root, '.github/workflows')).sort()).toEqual(['ci.yml', 'dependencies.yml', 'deploy.yml', 'pages.yml']);
+  expect(readdirSync(join(root, '.github/workflows')).sort()).toEqual(['ci.yml', 'dependencies.yml', 'deploy.yml', 'linkmap.yml', 'pages.yml']);
+});
+
+test('Linkmap validates its standalone app without publishing the office suite or holding deployment secrets', () => {
+  const w = yaml(read('.github/workflows/linkmap.yml')) as Workflow;
+  expect(w.permissions).toEqual({ contents: 'read' });
+  expect(Object.keys(w.jobs)).toEqual(['linkmap']);
+  const job = w.jobs.linkmap as Job & { defaults: { run: { 'working-directory': string } } };
+  expect(job.defaults.run['working-directory']).toBe('linkmap-kit');
+  const runs = job.steps.map((s) => s.run ?? '');
+  expect(runs).toContain('npm run check');
+  expect(runs).toContain('npm run build');
+  expect(runs).toContain('npm run test:e2e');
+  expect(runs.join('\n')).not.toMatch(/npm run deploy|gh release|secrets\./);
+  expect(JSON.stringify(w)).not.toMatch(/secrets\./);
 });
 
 test('the mirror (docs/mirror.md): after a deploy that succeeded, or by hand, the tag built for GitHub Pages and published there, then its version.json checked', () => {

@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react';
+import { readdirSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { offlineWorker } from './src/net/offline.ts';
 import { defineConfig, type Plugin } from 'vite';
@@ -21,6 +22,7 @@ function security(): Plugin {
 
 export default defineConfig({
   base: process.env.LINKMAP_BASE || '/',
+  server: { allowedHosts: ['terminal.local'] },
   plugins: [
     react(),
     security(),
@@ -30,13 +32,21 @@ export default defineConfig({
       generateBundle(_, bundle) {
         const files = [
           'index.html',
-          'icon.svg',
-          'icon-192.png',
-          'icon-512.png',
-          'manifest.webmanifest',
+          ...readdirSync('public', { recursive: true }).filter(
+            (p): p is string => typeof p === 'string' && /\.(svg|png|woff2|webmanifest)$/.test(p),
+          ),
           ...Object.keys(bundle).filter((f) => /\.(js|css)$/.test(f)),
         ];
-        const version = createHash('sha256').update(files.join('|')).digest('hex').slice(0, 12);
+        const version = createHash('sha256')
+          .update(
+            files.join('|') +
+              readdirSync('public', { recursive: true })
+                .filter((p): p is string => typeof p === 'string' && /\.(svg|png|woff2|webmanifest)$/.test(p))
+                .map((p) => readFileSync('public/' + p).toString('base64'))
+                .join(''),
+          )
+          .digest('hex')
+          .slice(0, 12);
         this.emitFile({ type: 'asset', fileName: 'sw.js', source: offlineWorker(files, version) });
       },
     },

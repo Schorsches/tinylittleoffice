@@ -1,3 +1,4 @@
+import { documentHash } from '../format/index.ts';
 import { useState } from 'react';
 import { useT, getLanguage } from '../i18n/index.ts';
 import { useStore } from '../state/store.ts';
@@ -50,7 +51,7 @@ export function Saved({ close }: { close: () => void }) {
             <div className="actions">
               <button
                 onClick={() => {
-                  location.hash = '#/v1/' + m.payload;
+                  location.hash = documentHash(m.payload);
                   close();
                 }}
               >

@@ -94,3 +94,33 @@ If this changes, the format has been broken.
 1. Add a new format byte (2) in `binary.ts` and keep the reader for 1.
 2. Writers emit the newest version, and readers accept all versions.
 3. Add a golden vector per version and an ADR in `docs/DECISIONS.md`.
+
+## Kartenatelier v2
+
+Extended documents use `#/v2/<flag><base64url>` with the same break insertion, base64 alphabet, raw/deflate packing
+and hostile-input byte limits as v1. `atlas.ts` dispatches by version; basic documents continue to emit unchanged v1.
+The internal payload adapter prefixes v2 payloads with `2`; this dispatch prefix is not part of the URL payload.
+
+Uncompressed bytes are `0x02` followed by UTF-8 JSON for a validated, quantized `AtlasDoc`. Root fields are `title`,
+`view`, `features`, optional `settings`. Features retain the v1 fields and may add `customColor` (`#RRGGBB`) and `info`:
+
+| Field                                                | Value / UTF-8 limit                |
+| ---------------------------------------------------- | ---------------------------------- |
+| `info.address`                                       | string, 2,000 bytes                |
+| `info.category`                                      | string, 120 bytes                  |
+| `info.services`                                      | at most 30 strings, each 120 bytes |
+| `info.hours`                                         | display-only string, 2,000 bytes   |
+| `settings.preset`                                    | `location`, `event`, `locator`     |
+| `settings.accent`                                    | `#RRGGBB`                          |
+| `settings.showLocation`, `interactive`, `showLabels` | boolean                            |
+
+Unknown document, feature, info, settings and view keys are rejected. Original coordinate, feature, name, note and
+view constraints remain. Strings render as text. Opening hours have no timezone or automatic open/closed evaluation.
+Coordinates are quantized to the unchanged 1e-5-degree grid. JSON property order follows the writer's object order;
+the inline golden snapshot in `src/format/tests/atlas.test.ts` fixes the reference vector.
+
+Protected v2 payloads use the existing `E` envelope without changing its bytes or parameters. The decrypted packed
+plaintext contains the v2 document byte; v1 remains readable, including protected links.
+
+`#/view/v1/…` and `#/view/v2/…` request the visitor UI. This prefix is a presentation choice, not access control.
+Recipients can edit their own copy. Shared links are snapshots, and passwords cannot revoke previous snapshots.
