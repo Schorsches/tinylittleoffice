@@ -35,20 +35,20 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
   const t = useT(),
     doc = useStore((s) => s.doc);
   const [result, setResult] = useState<ImportResult | null>(null),
-    [error, setError] = useState(false),
+    [error, setError] = useState<'fileError' | 'limit' | ''>(''),
     [source, setSource] = useState(''),
     [busy, setBusy] = useState(false);
   const generation = useRef(0);
   const load = useCallback(async (parse: () => Promise<ImportResult>) => {
     const token = ++generation.current;
-    setError(false);
+    setError('');
     setResult(null);
     setBusy(true);
     try {
       const next = await parse();
       if (token === generation.current) setResult(next);
     } catch {
-      if (token === generation.current) setError(true);
+      if (token === generation.current) setError('fileError');
     } finally {
       if (token === generation.current) setBusy(false);
     }
@@ -110,7 +110,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
             onChange={(e) => {
               generation.current++;
               setResult(null);
-              setError(false);
+              setError('');
               setBusy(false);
               setSource(e.target.value);
             }}
@@ -126,7 +126,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
         </button>
       </details>
       {busy && <p role="status">{t('loading')}</p>}
-      {error && <p role="alert">{t('fileError')}</p>}
+      {error && <p role="alert">{t(error)}</p>}
       {result && (
         <section className="import-preview" aria-label={t('importPreview')}>
           <h3>{t('importPreview')}</h3>
@@ -158,7 +158,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
               disabled={!result.doc.features.length}
               onClick={() => {
                 if (useStore.getState().commit(result.doc)) close();
-                else setError(true);
+                else setError('limit');
               }}
             >
               {t('replace')}
@@ -168,7 +168,7 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
               onClick={() => {
                 const s = useStore.getState();
                 if (s.commit({ ...s.doc, features: [...s.doc.features, ...result.doc.features] })) close();
-                else setError(true);
+                else setError('limit');
               }}
             >
               {t('add')}

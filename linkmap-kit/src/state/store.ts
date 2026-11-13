@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { prepareDocument } from './capacity.ts';
 import {
   emptyDoc,
   validDocument,
@@ -73,12 +74,13 @@ export const useStore = create<State>((set, get) => ({
   serviceFilter: '',
   camera: emptyDoc().view,
   commit(doc) {
-    if (!validDocument(doc)) {
+    const prepared = prepareDocument(doc);
+    if (!prepared) {
       set({ message: 'limit' });
       return false;
     }
     const s = get();
-    set({ doc: quantizeDocument(doc), past: [...s.past, s.doc].slice(-100), future: [], message: '' });
+    set({ doc: prepared.doc, past: [...s.past, s.doc].slice(-100), future: [], message: '' });
     return true;
   },
   addFeature(f) {
@@ -90,8 +92,9 @@ export const useStore = create<State>((set, get) => ({
   updateFeature(i, p) {
     const s = get();
     if (!s.doc.features[i]) return false;
-    if (p.color !== undefined) set({ lastColor: p.color });
-    return s.commit({ ...s.doc, features: s.doc.features.map((f, n) => (n === i ? { ...f, ...p } : f)) });
+    const ok = s.commit({ ...s.doc, features: s.doc.features.map((f, n) => (n === i ? { ...f, ...p } : f)) });
+    if (ok && p.color !== undefined) set({ lastColor: p.color });
+    return ok;
   },
   removeFeature(i) {
     const s = get();

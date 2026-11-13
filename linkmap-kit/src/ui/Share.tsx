@@ -5,13 +5,15 @@ import { useStore } from '../state/store.ts';
 import { flushLink } from '../state/link.ts';
 import { Dialog } from './Dialog.tsx';
 import { LinkMeter, fullLink } from './LinkMeter.tsx';
-import { encodeDocument, documentHash } from '../format/index.ts';
+import { documentHash } from '../format/index.ts';
+import { prepareDocument } from '../state/capacity.ts';
 import { simplify } from '../map/simplify.ts';
 export function SimplifyPanel({ close }: { close: () => void }) {
   const t = useT(),
     doc = useStore((s) => s.doc),
     [metres, setMetres] = useState(10);
   const preview = useMemo(() => ({ ...doc, features: doc.features.map((f) => simplify(f, metres)) }), [doc, metres]);
+  const prepared = useMemo(() => prepareDocument(preview), [preview]);
   return (
     <Dialog title={t('simplify')} close={close}>
       <label>
@@ -22,12 +24,12 @@ export function SimplifyPanel({ close }: { close: () => void }) {
         {doc.features.reduce((n, f) => n + f.coords.length, 0)} → {preview.features.reduce((n, f) => n + f.coords.length, 0)}{' '}
         {t('vertices')}
       </p>
-      <LinkMeter length={fullLink(documentHash(encodeDocument(preview))).length} />
+      {prepared ? <LinkMeter length={fullLink(documentHash(prepared.payload)).length} /> : <p role="alert">{t('limit')}</p>}
       <button
         className="primary"
+        disabled={!prepared}
         onClick={() => {
-          useStore.getState().commit(preview);
-          close();
+          if (useStore.getState().commit(preview)) close();
         }}
       >
         {t('apply')}
@@ -48,7 +50,9 @@ export function Share({ close, password }: { close: () => void; password: () => 
       .then((hash) => {
         if (active && hash) setLink(fullLink(hash.startsWith('#/view/') ? hash : hash.replace(/^#\//, '#/view/')));
       })
-      .catch(() => setMessage(t('linkError')));
+      .catch(() => {
+        if (active) setMessage(t('linkError'));
+      });
     return () => {
       active = false;
     };
@@ -77,15 +81,11 @@ export function Share({ close, password }: { close: () => void; password: () => 
         <button
           className="primary"
           disabled={!link}
-          onClick={() => {
-            void navigator.clipboard
-              ?.writeText(link)
-              .then(() => setMessage(t('copied')))
-              .catch(() => {
-                input.current?.select();
-                setMessage(t('copyFallback'));
-              });
-            if (!navigator.clipboard) {
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(link);
+              setMessage(t('copied'));
+            } catch {
               input.current?.select();
               setMessage(t('copyFallback'));
             }
