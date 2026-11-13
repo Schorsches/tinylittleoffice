@@ -23,18 +23,19 @@ export function startLinkSync(env: LinkEnvironment = browser) {
     clearTimeout(timer);
     generation++;
     loading = true;
-    const raw = env.read().replace(/^#\/view\//, '#/');
+    const incoming = env.read();
+    const raw = incoming.replace(/^#\/view\//, '#/');
     const payload = documentPayload(raw);
-    useStore.setState({ mode: env.read().startsWith('#/view/') ? 'view' : 'edit' });
+    useStore.setState({ mode: incoming.startsWith('#/view/') ? 'view' : 'edit' });
     try {
-      if (payload?.startsWith('E') || payload?.startsWith('2E'))
-        useStore.setState({ doc: emptyDoc(), locker: null, status: 'needs-password', payload, selected: null, past: [], future: [] });
+      if (payload === null && raw.startsWith('#/')) throw Error('unsupported route');
+      if (payload?.startsWith('E') || payload?.startsWith('2E')) useStore.getState().gateDocument('needs-password', payload);
       else {
         useStore.getState().replaceDoc(payload ? decodeDocument(payload) : emptyDoc());
         useStore.setState({ payload: payload ?? '' });
       }
     } catch {
-      useStore.setState({ doc: emptyDoc(), locker: null, status: 'damaged', payload: '', past: [], future: [], selected: null });
+      useStore.getState().gateDocument('damaged', '');
     }
     loading = false;
   };
@@ -63,7 +64,7 @@ export function startLinkSync(env: LinkEnvironment = browser) {
   };
   flushCurrent = flush;
   const unsub = useStore.subscribe((s, p) => {
-    if (!loading && (s.doc !== p.doc || s.locker !== p.locker) && s.status === 'ready') {
+    if (!loading && (s.doc !== p.doc || s.locker !== p.locker || s.mode !== p.mode) && s.status === 'ready') {
       generation++;
       clearTimeout(timer);
       timer = setTimeout(() => {

@@ -3,6 +3,39 @@ import { useStore } from '../store.ts';
 import { emptyDoc } from '../../format/index.ts';
 beforeEach(() => useStore.getState().replaceDoc(emptyDoc()));
 describe('document actions', () => {
+  it('clears transient map data atomically when a password or damaged-link gate is shown', () => {
+    const s = useStore.getState;
+    s().setTitle('Private map');
+    useStore.setState({
+      camera: { ...s().camera, lng: 8.3, lat: 49.2 },
+      search: 'Private query',
+      categoryFilter: 'Private category',
+      serviceFilter: 'Private service',
+      message: 'linkError',
+      tool: 'polygon',
+    });
+    const revision = s().revision;
+    s().gateDocument('needs-password', 'encrypted-payload');
+    expect(s()).toMatchObject({
+      doc: emptyDoc(),
+      camera: emptyDoc().view,
+      status: 'needs-password',
+      payload: 'encrypted-payload',
+      locker: null,
+      search: '',
+      categoryFilter: '',
+      serviceFilter: '',
+      message: '',
+      tool: 'select',
+      selected: null,
+      past: [],
+      future: [],
+      revision: revision + 1,
+    });
+    s().gateDocument('damaged', '');
+    expect(s().revision).toBe(revision + 2);
+    expect(s().payload).toBe('');
+  });
   it('validates edits and supports undo and redo', () => {
     const s = useStore.getState;
     expect(s().addFeature({ kind: 'line', coords: [[0, 0]], name: '', note: '', color: 0 })).toBe(false);

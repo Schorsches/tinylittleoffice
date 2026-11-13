@@ -15,6 +15,77 @@ import {
   newLocker,
 } from '../../format/index.ts';
 afterEach(() => vi.useRealTimers());
+it.each([false, true])('persists mode-only changes across reload (extended: %s) without changing history', async (extended) => {
+  vi.useFakeTimers();
+  const doc = { ...emptyDoc(), title: 'My map', ...(extended ? { settings: defaultSettings } : {}) };
+  let hash = documentHash(encodeDocument(doc));
+  let reload = () => {};
+  const stop = startLinkSync({
+    read: () => hash,
+    write: (h) => {
+      hash = h;
+    },
+    listen: (cb) => {
+      reload = cb;
+      return () => {};
+    },
+  });
+  try {
+    useStore.setState({ mode: 'view' });
+    await vi.advanceTimersByTimeAsync(151);
+    expect(hash).toMatch(/^#\/view\/v[12]\//);
+    reload();
+    expect(useStore.getState().mode).toBe('view');
+    expect(useStore.getState().doc).toEqual(doc);
+    useStore.setState({ mode: 'edit' });
+    await vi.advanceTimersByTimeAsync(151);
+    expect(hash).toMatch(/^#\/v[12]\//);
+    expect(useStore.getState().past).toEqual([]);
+  } finally {
+    stop();
+  }
+});
+
+it('uses the current mode when an encrypted flush finishes after a mode change', async () => {
+  let hash = '';
+  const stop = startLinkSync({
+    read: () => hash,
+    write: (h) => {
+      hash = h;
+    },
+    listen: () => () => {},
+  });
+  try {
+    useStore.setState({ locker: await newLocker('four words for transitions', 1000) });
+    useStore.getState().setTitle('Private map');
+    const pending = flushLink();
+    useStore.setState({ mode: 'view' });
+    await pending;
+    expect(hash).toMatch(/^#\/view\/v1\/E/);
+  } finally {
+    stop();
+  }
+});
+
+it.each(['#/v3/newer-map', '#/view/v3/newer-map', '#/view/'])(
+  'reports unsupported map routes instead of loading an empty map: %s',
+  (hash) => {
+    const writes: string[] = [];
+    const stop = startLinkSync({
+      read: () => hash,
+      write: (h) => {
+        writes.push(h);
+      },
+      listen: () => () => {},
+    });
+    try {
+      expect(useStore.getState().status).toBe('damaged');
+      expect(writes).toEqual([]);
+    } finally {
+      stop();
+    }
+  },
+);
 it('loads v2 visitor links and preserves metadata and visitor mode when flushing', async () => {
   const doc = { ...emptyDoc(), title: 'Visitor map', settings: { ...defaultSettings, preset: 'event' as const } };
   let hash = documentHash(encodeDocument(doc)).replace('#/', '#/view/');

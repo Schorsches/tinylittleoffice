@@ -36,7 +36,24 @@ interface State {
   undo(): void;
   redo(): void;
   replaceDoc(d: MapDoc, locker?: Locker | null): void;
+  gateDocument(status: 'needs-password' | 'damaged', payload: string): void;
 }
+/** Replace all document-derived memory together, including transient camera/filter state. */
+const documentFields = (doc: MapDoc, locker: Locker | null = null) => ({
+  doc: quantizeDocument(doc),
+  camera: doc.view,
+  locker,
+  search: '',
+  categoryFilter: '',
+  serviceFilter: '',
+  message: '',
+  past: [] as MapDoc[],
+  future: [] as MapDoc[],
+  selected: null,
+  tool: 'select' as const,
+  tab: 'content' as const,
+  lastColor: 0 as const,
+});
 export const useStore = create<State>((set, get) => ({
   doc: emptyDoc(),
   selected: null,
@@ -102,18 +119,12 @@ export const useStore = create<State>((set, get) => ({
   replaceDoc(doc, locker = null) {
     if (!validDocument(doc)) return;
     set({
-      doc: quantizeDocument(doc),
-      camera: doc.view,
-      search: '',
-      categoryFilter: '',
-      serviceFilter: '',
-      locker,
-      past: [],
-      future: [],
-      selected: null,
-      tool: 'select',
+      ...documentFields(doc, locker),
       status: 'ready',
       revision: get().revision + 1,
     });
+  },
+  gateDocument(status, payload) {
+    set({ ...documentFields(emptyDoc()), status, payload, revision: get().revision + 1 });
   },
 }));

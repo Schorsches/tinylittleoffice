@@ -1,8 +1,9 @@
-import { emptyDoc, newLocker, openProtectedDocument } from '../format/index.ts';
+import { newLocker, openProtectedDocument } from '../format/index.ts';
 import { useStore } from './store.ts';
 import { flushLink } from './link.ts';
 export async function protect(password: string) {
-  const revision = useStore.getState().revision;
+  const { revision, status } = useStore.getState();
+  if (status !== 'ready') return false;
   const locker = await newLocker(password);
   if (useStore.getState().revision !== revision) return false;
   useStore.setState({ locker });
@@ -10,16 +11,18 @@ export async function protect(password: string) {
   return true;
 }
 export async function unlock(password: string) {
-  const payload = useStore.getState().payload;
+  const { payload, revision } = useStore.getState();
   const { doc, locker } = await openProtectedDocument(payload, password);
-  if (useStore.getState().payload !== payload) return false;
+  if (useStore.getState().payload !== payload || useStore.getState().revision !== revision) return false;
   useStore.getState().replaceDoc(doc, locker);
   return true;
 }
 export async function lock() {
+  const { revision } = useStore.getState();
   const hash = await flushLink();
-  if (!hash) return;
-  useStore.setState({ doc: emptyDoc(), locker: null, status: 'needs-password', selected: null, past: [], future: [], tool: 'select' });
+  const current = useStore.getState();
+  if (!hash || current.revision !== revision || !current.locker) return;
+  current.gateDocument('needs-password', current.payload);
 }
 export async function unprotect() {
   useStore.setState({ locker: null });
