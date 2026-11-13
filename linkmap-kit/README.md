@@ -20,6 +20,8 @@ this visitor view; recipients can edit their own copy. New fields use v2 links w
 - Share opens a copyable link and a locally generated QR code. Protect with a password before sharing sensitive maps.
   Keep that password separately; there is no reset service. Changing a password does not revoke already shared links.
 - Import GeoJSON, CSV (download the template in Import) or GPX locally, then replace the map or add the imported features. Export GeoJSON, GPX or KML.
+  Paste GeoJSON for a local preview, or download the flat metadata template and DE/EN transformation prompt under
+  Templates and data preparation. See [the import profile](docs/IMPORT.md) for fields, limits and the review workflow.
   GPX omits areas and extended information; KML omits extended information. GeoJSON retains all fields; polygon holes and unsupported GeoJSON geometry types are reported on import.
 - Simplify previews a smaller vertex count and link before applying a change that can be undone.
 - Saved maps → Save on this device writes to IndexedDB. Saved maps can be opened, renamed or deleted.

@@ -160,6 +160,23 @@ dialog::backdrop {
   gap: 8px;
   margin: 18px 0;
 }
+.import-help,
+.import-paste {
+  margin-block: 16px;
+}
+.import-help summary,
+.import-paste summary,
+.import-preview summary {
+  cursor: pointer;
+  min-block-size: 48px;
+  padding-block: 12px;
+  font-weight: 600;
+}
+.import-preview {
+  border-block: 1px solid var(--border);
+  padding-block: 12px;
+  overflow-wrap: anywhere;
+}
 .file-actions button {
   justify-content: flex-start;
 }
