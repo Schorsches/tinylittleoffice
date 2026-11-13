@@ -165,5 +165,18 @@ export const de: Record<keyof typeof en, string> = {
   templateNotice: 'Vorlage bereit. Füge deinen ersten Ort hinzu.',
   readOnlyNotice: 'Dies ist eine geteilte Kopie. Du kannst deine eigene Kopie bearbeiten.',
   downloadTemplate: 'Punkte-Vorlage herunterladen',
+  prepareImport: 'Vorlagen und Datenaufbereitung',
+  profileHint:
+    'Nutze die Punkt-CSV oder die GeoJSON-Vorlage für Orte, Wege und Flächen. Koordinaten müssen bekannt sein; Adressen werden nicht nachgeschlagen.',
+  downloadJsonTemplate: 'GeoJSON-Vorlage herunterladen',
+  downloadPrompt: 'Transformationsprompt herunterladen',
+  promptPrivacy:
+    'Der Prompt enthält nur fiktive Beispiele. Bei einem externen KI-Werkzeug entscheidest du, welche Daten du dort teilst. Linkmap sendet nichts.',
+  pasteJson: 'GeoJSON einfügen',
+  checkData: 'Daten prüfen',
+  importPreview: 'Importvorschau',
+  importIssues: 'Übersprungene oder angepasste Daten',
+  issueLimit: 'Es werden bis zu 20 unterschiedliche Hinweise angezeigt. Korrigiere die Quelle, wenn Angaben fehlen.',
+  previewHint: 'Es werden bis zu fünf importierte Einträge angezeigt. Erst mit Hinzufügen oder Ersetzen änderst du deine Karte.',
   unsupportedFields: 'Nicht unterstützte Felder',
 };

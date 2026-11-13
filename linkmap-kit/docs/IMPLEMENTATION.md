@@ -66,8 +66,8 @@ manifest and versioned app-shell service worker. The frozen golden link continue
 Three-column desktop editor and responsive mobile map/list workflow, contextual metadata editor, appearance controls,
 visitor search/category/service filters, CSV template import and version-2 links are implemented. Hours are display
 text; there is no automatic open-now evaluation. No address geocoding or remote search is added. The earlier design
-proposal for a richer normalized import profile and AI transformation prompt remains a future extension; the supplied
-CSV template and native GeoJSON are the supported exchange formats today. See `../design-qa.md` for current evidence.
+proposal for a richer normalized import profile and AI transformation prompt is implemented in the local import workflow
+described in [IMPORT.md](IMPORT.md). CSV, native GeoJSON and GPX remain supported. See `../design-qa.md` for design evidence.
 
 Current Kartenatelier validation: `npm run check` passes 49 tests in 15 files, TypeScript, ESLint and Prettier.
 All 9 production browser tests pass; the final typography change was followed by another passing desktop/mobile axe
@@ -101,3 +101,27 @@ Chromium. Manual review: open an existing v1 link, add address/category/services
 filter places and open the shared snapshot in another tab. Repeat with password protection and at 390 × 844.
 This integration does not publish either application. Normalized import profiles and the AI transformation prompt
 remain follow-up work.
+
+## Local import workflow validation — 2026-11-13
+
+Built on merged PR #3 (`b4e2485`). The import-only `import-v1` profile, local paste/preview flow and locally generated
+DE/EN transformation prompts are documented in [IMPORT.md](IMPORT.md). Invalid previews and late file reads are
+discarded, and zero-feature imports cannot replace the current map. Add/Replace remain explicit, undoable actions.
+No package manifest, lockfile, shared-link codec, CSP, storage policy or network allow-list changes are required.
+
+- `npm run check`: TypeScript, ESLint, Prettier and all 59 unit/component tests in 17 files pass.
+- `npm run build`: passes, including budgets; 89.7 KiB initial JavaScript and approximately 14.1 KiB total CSS gzip.
+- Parser tests cover metadata/native export/link round trips, template input, ordinary GeoJSON, invalid profiles,
+  oversized input, wrong types, hostile text, unsupported fields and missing coordinates.
+- Dialog tests cover preview before commit, undo, stale preview invalidation, out-of-order read failures and
+  blocking zero-feature replacement.
+- New production flow `e2e/import.spec.ts` was attempted with `/usr/bin/chromium`. It stops at browser launch with
+  `socket() failed: Operation not permitted`; no page assertions or fresh visual checks ran. Run all ten browser
+  tests and inspect the desktop/mobile import dialog in a browser-capable environment before release.
+- This slice changes only Linkmap. The root suite issues recorded above were not changed or revalidated here.
+
+Manual check: Import file → Templates and data preparation → download the GeoJSON template. Paste it under
+Paste GeoJSON, check the preview, then change the text to invalid JSON and confirm the previous apply actions
+disappear. Paste the template again, check and Add; Undo restores the prior map before a reload. Add again, reload
+the v2 link and inspect the point's category, services, hours and color. Try both languages and download the transformation prompt; it should
+contain fictional examples only. Maps and passwords are never inserted into that prompt.

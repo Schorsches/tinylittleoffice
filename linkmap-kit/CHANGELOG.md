@@ -1,5 +1,12 @@
 # Changelog
 
+## Local import workflow — 2026-11-13
+
+- Added the versioned `import-v1` GeoJSON profile with flat place metadata, validation and native v2-link conversion.
+- Added local GeoJSON paste/check, item previews and bounded adjustment notices before explicit Add/Replace.
+- Added GeoJSON examples and German/English transformation-prompt downloads without sending map data.
+- Invalidated stale previews and out-of-order file reads; empty imports cannot replace an existing map.
+
 ## Kartenatelier integration — 2026-11-13
 
 - Integrated the prepared Kartenatelier commit onto the dependency-policy baseline without changing either lockfile.

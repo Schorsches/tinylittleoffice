@@ -1,14 +1,23 @@
 import { fromCsv, csvTemplate } from '../io/csv.ts';
-import { useEffect, useState, type DragEvent } from 'react';
-import { fromGeoJson, toGeoJson, FILE_LIMIT, type ImportResult } from '../io/geojson.ts';
+import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
+import { toGeoJson, FILE_LIMIT, type ImportResult } from '../io/geojson.ts';
+import { fromJson } from '../io/profile.ts';
+import { importTemplate, transformationPrompt } from '../io/import-guide.ts';
 import { fromGpx, toGpx, toKml } from '../io/xml.ts';
 import { useStore } from '../state/store.ts';
-import { useT } from '../i18n/index.ts';
+import { getLanguage, useT } from '../i18n/index.ts';
 import { Dialog } from './Dialog.tsx';
 function download(title: string, extension: string, text: string) {
   const url = URL.createObjectURL(
     new Blob([text], {
-      type: extension === 'geojson' ? 'application/geo+json' : extension === 'csv' ? 'text/csv;charset=utf-8' : 'application/xml',
+      type:
+        extension === 'geojson'
+          ? 'application/geo+json'
+          : extension === 'csv'
+            ? 'text/csv;charset=utf-8'
+            : extension === 'txt'
+              ? 'text/plain;charset=utf-8'
+              : 'application/xml',
     }),
   );
   const a = document.createElement('a');
@@ -20,35 +29,45 @@ function download(title: string, extension: string, text: string) {
 async function parseFile(f: File) {
   if (f.size > FILE_LIMIT) throw Error('size');
   const text = await f.text();
-  return f.name.toLowerCase().endsWith('.gpx') ? fromGpx(text) : f.name.toLowerCase().endsWith('.csv') ? fromCsv(text) : fromGeoJson(text);
+  return f.name.toLowerCase().endsWith('.gpx') ? fromGpx(text) : f.name.toLowerCase().endsWith('.csv') ? fromCsv(text) : fromJson(text);
 }
 export function Files({ close, droppedFile = null }: { close: () => void; droppedFile?: File | null }) {
   const t = useT(),
     doc = useStore((s) => s.doc);
   const [result, setResult] = useState<ImportResult | null>(null),
-    [error, setError] = useState(false);
-  const read = async (f: File) => {
+    [error, setError] = useState(false),
+    [source, setSource] = useState(''),
+    [busy, setBusy] = useState(false);
+  const generation = useRef(0);
+  const load = useCallback(async (parse: () => Promise<ImportResult>) => {
+    const token = ++generation.current;
     setError(false);
+    setResult(null);
+    setBusy(true);
     try {
-      setResult(await parseFile(f));
+      const next = await parse();
+      if (token === generation.current) setResult(next);
     } catch {
-      setError(true);
+      if (token === generation.current) setError(true);
+    } finally {
+      if (token === generation.current) setBusy(false);
     }
-  };
+  }, []);
+  const invalidate = useCallback(() => {
+    generation.current++;
+  }, []);
+  const read = (f: File) => load(() => parseFile(f));
   useEffect(() => {
-    if (!droppedFile) return;
     let active = true;
-    void parseFile(droppedFile)
-      .then((r) => {
-        if (active) setResult(r);
-      })
-      .catch(() => {
-        if (active) setError(true);
-      });
+    // The dropped file comes from the outer workspace; start its asynchronous read after mounting the dialog.
+    void Promise.resolve().then(() => {
+      if (active && droppedFile) void load(() => parseFile(droppedFile));
+    });
     return () => {
       active = false;
+      invalidate();
     };
-  }, [droppedFile]);
+  }, [droppedFile, load, invalidate]);
   const drop = (e: DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
@@ -68,24 +87,84 @@ export function Files({ close, droppedFile = null }: { close: () => void; droppe
           }}
         />
       </div>
-      <button onClick={() => download('linkmap-template', 'csv', csvTemplate)}>{t('downloadTemplate')}</button>
+      <details className="import-help">
+        <summary>{t('prepareImport')}</summary>
+        <p>{t('profileHint')}</p>
+        <div className="actions">
+          <button onClick={() => download('linkmap-template', 'csv', csvTemplate)}>{t('downloadTemplate')}</button>
+          <button onClick={() => download('linkmap-import-template', 'geojson', importTemplate)}>{t('downloadJsonTemplate')}</button>
+          <button onClick={() => download('linkmap-transformation-prompt', 'txt', transformationPrompt(getLanguage()))}>
+            {t('downloadPrompt')}
+          </button>
+        </div>
+        <p className="muted">{t('promptPrivacy')}</p>
+      </details>
+      <details className="import-paste">
+        <summary>{t('pasteJson')}</summary>
+        <label>
+          {t('pasteJson')}
+          <textarea
+            rows={6}
+            value={source}
+            spellCheck={false}
+            onChange={(e) => {
+              generation.current++;
+              setResult(null);
+              setError(false);
+              setBusy(false);
+              setSource(e.target.value);
+            }}
+          />
+        </label>
+        <button
+          disabled={!source.trim() || busy}
+          onClick={() => {
+            void load(() => Promise.resolve(fromJson(source)));
+          }}
+        >
+          {t('checkData')}
+        </button>
+      </details>
+      {busy && <p role="status">{t('loading')}</p>}
       {error && <p role="alert">{t('fileError')}</p>}
       {result && (
-        <section>
-          <p>
+        <section className="import-preview" aria-label={t('importPreview')}>
+          <h3>{t('importPreview')}</h3>
+          <p role="status">
             {t('importSummary')}: {result.doc.features.length}. {t('skipped')}: {result.skipped.length}
-            {result.skipped.length ? ` (${[...new Set(result.skipped)].join(', ')})` : ''}
           </p>
+          {!!result.skipped.length && (
+            <details>
+              <summary>{t('importIssues')}</summary>
+              <ul>
+                {[...new Set(result.skipped)].slice(0, 20).map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+              <p className="muted">{t('issueLimit')}</p>
+            </details>
+          )}
+          <ul>
+            {result.doc.features.slice(0, 5).map((feature, i) => (
+              <li key={i}>
+                {feature.name || t(feature.kind)}
+                {feature.info?.address ? ` · ${feature.info.address}` : ''}
+              </li>
+            ))}
+          </ul>
+          <p className="muted">{t('previewHint')}</p>
           <div className="actions">
             <button
+              disabled={!result.doc.features.length}
               onClick={() => {
-                useStore.getState().commit(result.doc);
-                close();
+                if (useStore.getState().commit(result.doc)) close();
+                else setError(true);
               }}
             >
               {t('replace')}
             </button>
             <button
+              disabled={!result.doc.features.length}
               onClick={() => {
                 const s = useStore.getState();
                 if (s.commit({ ...s.doc, features: [...s.doc.features, ...result.doc.features] })) close();

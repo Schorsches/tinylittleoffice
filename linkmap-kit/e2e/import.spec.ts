@@ -1,0 +1,27 @@
+import { test, expect, ready } from './fixtures.ts';
+import { importTemplate } from '../src/io/import-guide.ts';
+test('pasted profile is previewed locally, invalidates on edit and survives link reload', async ({ page }) => {
+  await page.goto('/');
+  await ready(page);
+  await page.getByRole('button', { name: 'Import file', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.locator('summary').filter({ hasText: 'Paste GeoJSON' }).click();
+  await dialog.getByLabel('Paste GeoJSON').fill(importTemplate);
+  await dialog.getByRole('button', { name: 'Check data' }).click();
+  await expect(dialog.getByRole('region', { name: 'Import preview' })).toContainText('Example meeting point');
+  await expect(page.locator('.outline-group li')).toHaveCount(0);
+  await dialog.getByLabel('Paste GeoJSON').fill('{');
+  await expect(dialog.getByRole('button', { name: 'Add to map' })).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Check data' }).click();
+  await expect(dialog.getByRole('alert')).toBeVisible();
+  await dialog.getByLabel('Paste GeoJSON').fill(importTemplate);
+  await dialog.getByRole('button', { name: 'Check data' }).click();
+  await dialog.getByRole('button', { name: 'Add to map' }).click();
+  await expect(page.locator('.outline-group li')).toHaveCount(3);
+  await expect.poll(() => new URL(page.url()).hash.startsWith('#/v2/')).toBe(true);
+  await page.reload();
+  await ready(page);
+  await page.getByRole('button', { name: 'Example meeting point', exact: true }).click();
+  await expect(page.getByLabel('Category', { exact: true })).toHaveValue('Meeting');
+  await expect(page.getByLabel('Opening hours', { exact: true })).toHaveValue('Saturday 14:00–18:00');
+});

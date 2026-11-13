@@ -161,5 +161,18 @@ export const en = {
   templateNotice: 'Template ready. Add your first place.',
   readOnlyNotice: 'This is a shared copy. You can edit your own copy.',
   downloadTemplate: 'Download point template',
+  prepareImport: 'Templates and data preparation',
+  profileHint:
+    'Use the point CSV or GeoJSON template for places, paths and areas. Coordinates must already be known; addresses are not looked up.',
+  downloadJsonTemplate: 'Download GeoJSON template',
+  downloadPrompt: 'Download transformation prompt',
+  promptPrivacy:
+    'The prompt contains fictional examples only. If you use an external AI tool, you choose which data to share with it. Linkmap sends nothing.',
+  pasteJson: 'Paste GeoJSON',
+  checkData: 'Check data',
+  importPreview: 'Import preview',
+  importIssues: 'Skipped or adjusted data',
+  issueLimit: 'Up to 20 distinct issues are shown. Correct the source if information is missing.',
+  previewHint: 'Up to five imported items are shown. Your map changes only when you choose Add or Replace.',
   unsupportedFields: 'Unsupported fields',
 } as const;
