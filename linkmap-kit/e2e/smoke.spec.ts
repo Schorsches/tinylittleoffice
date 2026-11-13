@@ -40,7 +40,10 @@ test('the map document never reaches any server', async ({ page }) => {
 
 test('a damaged link shows a message, not a crash', async ({ page }) => {
   const problems = watch(page);
-  await page.goto('/#/v1/z!!!');
-  await expect(page.getByRole('alert')).toBeVisible();
+  for (const hash of ['#/v1/z!!!', '#/view/v3/unsupported-map']) {
+    await page.goto('/' + hash);
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.locator('.maplibregl-canvas')).toHaveCount(0);
+  }
   expect(problems).toEqual([]);
 });

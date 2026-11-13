@@ -65,6 +65,7 @@ export function Password({ opening = false, done }: { opening?: boolean; done: (
           onClick={() => {
             history.replaceState(null, '', location.pathname);
             useStore.getState().replaceDoc(emptyDoc());
+            useStore.setState({ mode: 'edit' });
           }}
         >
           {t('newMap')}

@@ -1,5 +1,13 @@
 # Changelog
 
+## Link and password transitions — 2026-11-13
+
+- Persisted preview/edit mode changes in the URL, including changes during encrypted link generation.
+- Rejected unsupported map routes instead of presenting them as empty editable maps.
+- Cleared camera, search/filter state, selection, history and keys together when showing password/damaged-link gates.
+- Discarded late password results after navigation and prevented a pending lock from locking a different map.
+- Made New map from a locked visitor link open the editor.
+
 ## Local import workflow — 2026-11-13
 
 - Added the versioned `import-v1` GeoJSON profile with flat place metadata, validation and native v2-link conversion.

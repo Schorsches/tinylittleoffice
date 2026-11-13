@@ -125,3 +125,32 @@ Paste GeoJSON, check the preview, then change the text to invalid JSON and confi
 disappear. Paste the template again, check and Add; Undo restores the prior map before a reload. Add again, reload
 the v2 link and inspect the point's category, services, hours and color. Try both languages and download the transformation prompt; it should
 contain fictional examples only. Maps and passwords are never inserted into that prompt.
+
+## Link and password transition validation — 2026-11-13
+
+Built on merged PR #4 (`f660ac3`). Preview/edit switches now participate in the existing 150 ms link debounce without
+creating document undo entries. A mode change invalidates pending encryption so its result cannot restore a stale
+mode in the URL. Both v1 and v2 routes remain compatible; the payload layout and cryptographic code are unchanged.
+Unknown map routes such as `#/view/v3/...` show the damaged-link screen and are not automatically rewritten. Existing
+non-map anchors remain outside the route parser.
+
+Password/damaged-link gates atomically clear document-derived transient state (camera, filters, selection, history,
+active drawing, messages and keys) and advance the document revision. Late protect/unlock results from an earlier
+revision are discarded, even after navigating away and back to an identical payload. A pending lock cannot lock a
+newly opened map. New map on a locked visitor link switches to edit mode.
+
+- `npm run check`: strict TypeScript, ESLint, Prettier and all 70 tests in 18 files pass.
+- `npm run build`: passes including the existing size budgets (approximately 89.8 KiB initial JavaScript and
+  14.1 KiB total CSS gzip).
+- Eleven new regressions exercise mode-only reloads for v1/v2, encrypted mode races, unsupported routes, transient
+  state clearing, three password-navigation races and new-map behavior from the visitor password screen.
+- Existing production browser flows now also assert preview/edit persistence across reload and unsupported-route
+  recovery. Browser launch is still blocked in this workspace by Chromium's process-singleton socket restriction
+  recorded in the preceding slices; no browser or fresh visual pass is claimed for this change.
+- No dependency, lockfile, shared-link codec, CSP, host allow-list or persistence-policy changes. Root-suite issues
+  described above remain outside this slice and were not revalidated.
+
+Manual verification: create a map, choose Preview, wait for its visitor URL, then reload; the visitor view must
+remain active. Choose Edit this copy, wait for its edit URL and reload again. Repeat with an extended/password-protected
+map. An unsupported version must show recovery rather than an empty editor. On a locked visitor map, New map must
+open the editor. Re-run the ten production browser tests in a browser-capable environment before release.
