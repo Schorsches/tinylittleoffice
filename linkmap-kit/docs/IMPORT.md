@@ -65,6 +65,13 @@ limits report excess features/coordinates. Native GeoJSON may also report trunca
 rejects invalid metadata for that feature. All imported strings remain text, including anything that looks like HTML.
 Use native GeoJSON export for lossless backups including map settings; CSV/GPX/KML have narrower field coverage.
 
+The file-size limit is separate from shared-link capacity: a source may fit 10 MiB while the resulting document
+exceeds the codec's 2 MiB inflated or 1 MiB packed limits. Add and Replace preflight the entire resulting document,
+including existing features on Add, and reserve 64 packed bytes for password protection. A capacity error keeps
+the previous map and undo history unchanged and leaves the dialog open so the source can be reduced. The source
+preview's accepted-feature count alone does not guarantee that the combined document fits a link. Browser and
+messaging-app URL limits can be lower than the codec limits.
+
 ## Template and transformation prompt
 
 Expand **Templates and data preparation** to download a point CSV, a GeoJSON example with a point/path/area or a

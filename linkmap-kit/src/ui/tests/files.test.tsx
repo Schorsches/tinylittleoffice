@@ -7,6 +7,7 @@ import { importTemplate } from '../../io/import-guide.ts';
 import { emptyDoc } from '../../format/index.ts';
 import { useStore } from '../../state/store.ts';
 import { setLanguage } from '../../i18n/index.ts';
+import { toGeoJson } from '../../io/geojson.ts';
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = function () {
     this.setAttribute('open', '');
@@ -77,4 +78,25 @@ it('blocks empty results from replacing the current map', async () => {
   fireEvent.click(replace);
   expect(close).not.toHaveBeenCalled();
   expect(useStore.getState().doc.title).toBe('My map');
+});
+
+it('keeps the current map when adding a valid import would exceed link capacity', async () => {
+  const features = Array.from({ length: 300 }, () => ({
+    kind: 'point' as const,
+    coords: [[8.3, 49.2]] as const,
+    color: 0 as const,
+    name: '',
+    note: 'a'.repeat(4000),
+  }));
+  useStore.getState().replaceDoc({ ...emptyDoc(), title: 'Keep this', features });
+  const before = useStore.getState().doc;
+  const close = vi.fn();
+  render(<Files close={close} />);
+  const file = new File([''], 'data.geojson');
+  Object.defineProperty(file, 'text', { value: () => Promise.resolve(toGeoJson({ ...emptyDoc(), features })) });
+  fireEvent.change(screen.getByLabelText('Import file'), { target: { files: [file] } });
+  fireEvent.click(await screen.findByRole('button', { name: 'Add to map' }));
+  expect(screen.getByRole('alert').textContent).toBe('The limit was reached. Shorten the text or simplify the map.');
+  expect(useStore.getState().doc).toBe(before);
+  expect(close).not.toHaveBeenCalled();
 });

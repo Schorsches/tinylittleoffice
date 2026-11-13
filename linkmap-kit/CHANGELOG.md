@@ -1,5 +1,12 @@
 # Changelog
 
+## Link capacity and sharing recovery — 2026-11-13
+
+- Checked edits against actual codec round trips and packed capacity before committing them, with headroom for passwords.
+- Kept the current map, history and drawing color when an edit or combined import exceeds capacity.
+- Added a specific limit message to rejected imports and a recoverable oversized simplification preview.
+- Made manual copy fallback work for absent, rejected and synchronously throwing Clipboard APIs.
+
 ## Link and password transitions — 2026-11-13
 
 - Persisted preview/edit mode changes in the URL, including changes during encrypted link generation.

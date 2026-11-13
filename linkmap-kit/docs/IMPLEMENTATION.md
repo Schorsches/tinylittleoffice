@@ -154,3 +154,29 @@ Manual verification: create a map, choose Preview, wait for its visitor URL, the
 remain active. Choose Edit this copy, wait for its edit URL and reload again. Repeat with an extended/password-protected
 map. An unsupported version must show recovery rather than an empty editor. On a locked visitor map, New map must
 open the editor. Re-run the ten production browser tests in a browser-capable environment before release.
+
+## Capacity and share-recovery validation — 2026-11-13
+
+Built on merged PR #5 (`35e4a4e`). Structurally valid documents can exceed codec byte limits. Commits now preflight
+the real encode/decode round trip and reserve the same 64 packed bytes used by the v2 protected encoder. Refused
+edits retain the previous document and history; refused feature edits also retain the drawing color. Add validates
+the combined map rather than just the incoming file. The import dialog shows a specific limit message and stays
+open on refusal. Simplification previews report capacity failure without throwing during rendering. Copy fallback
+handles missing Clipboard APIs, rejected promises and synchronous exceptions.
+
+- `npm run check`: TypeScript, ESLint, Prettier and all 81 tests in 20 files pass.
+- `npm run build`: passes existing budgets, approximately 89.9 KiB initial JavaScript and 14.1 KiB total CSS gzip.
+- Eleven new regression cases cover v1/v2 inflated limits, incompressible packed limits, rejected transaction
+  history/color preservation, valid round trips, combined imports, safe simplification and three clipboard failures.
+- The existing production import flow now attempts a 600-point oversized document, checks refusal and then
+  continues to a valid import. The ten browser tests still require a browser-capable environment; the Chromium
+  launch restriction recorded above remains unresolved. No fresh browser or visual pass is claimed.
+- A separate local Node timing run of the full preflight on a 5,000-coordinate extended track, after two warmups,
+  averaged approximately 36 ms over ten runs (maximum 86 ms). This is synthetic container evidence, not a mobile
+  performance guarantee; checking/compressing large maps has a synchronous cost and should be evaluated on target devices.
+- No dependencies, lockfiles, codec layouts/crypto, CSP, network hosts or persistence policy changed. Root-suite
+  issues remain outside this slice and were not revalidated.
+
+Manual review: import a file with 600 points each holding a 4,000-byte note, try Add or Replace and confirm that
+the existing map and undo history remain unchanged. Reduce the source and retry. Verify normal simplification,
+Cancel and undo after Apply. Deny clipboard access and confirm the link is selected with manual-copy instructions.
