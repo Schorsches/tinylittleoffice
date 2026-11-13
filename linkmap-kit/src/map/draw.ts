@@ -6,12 +6,15 @@ import type { Tool } from '../state/store.ts';
 import { fromDraw, geometry } from './geojson.ts';
 export function createDraw(map: Map, onAdd: (f: Feature) => void, onEdit: (i: number, f: Feature) => void) {
   const flags = { feature: { draggable: true, coordinates: { draggable: true, deletable: true, midpoints: true } } };
+  const lineMode = new TerraDrawLineStringMode({ keyEvents: { finish: 'Enter', cancel: 'Escape' } });
+  const polygonMode = new TerraDrawPolygonMode({ keyEvents: { finish: 'Enter', cancel: 'Escape' } });
+  let activeTool: Tool = 'select';
   const draw = new TerraDraw({
     adapter: new TerraDrawMapLibreGLAdapter({ map, coordinatePrecision: 5 }),
     modes: [
       new TerraDrawPointMode(),
-      new TerraDrawLineStringMode({ keyEvents: { finish: 'Enter', cancel: 'Escape' } }),
-      new TerraDrawPolygonMode({ keyEvents: { finish: 'Enter', cancel: 'Escape' } }),
+      lineMode,
+      polygonMode,
       new TerraDrawSelectMode({
         flags: { point: flags, linestring: flags, polygon: flags },
         keyEvents: { deselect: 'Escape', delete: null, rotate: null, scale: null },
@@ -42,7 +45,12 @@ export function createDraw(map: Map, onAdd: (f: Feature) => void, onEdit: (i: nu
   draw.start();
   draw.setMode('select');
   return {
+    finish() {
+      if (activeTool === 'line' || activeTool === 'polygon')
+        (activeTool === 'line' ? lineMode : polygonMode).onKeyUp({ key: 'Enter', heldKeys: [], preventDefault: () => {} });
+    },
     sync(tool: Tool, index: number | null, feature?: Feature) {
+      activeTool = tool;
       if (
         tool === 'select' &&
         editing === index &&

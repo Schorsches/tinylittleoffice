@@ -341,7 +341,8 @@ describe('no word for what is gone: a sentence about something removed is rewrit
     ]);
   });
   test('the tree has none', () => {
-    expect(found(textFiles.filter((f) => !(f in STALE_OK)))).toStrictEqual([]);
+    // These removals describe the office suite. Linkmap is a separate product with its own password codec and vocabulary.
+    expect(found(textFiles.filter((f) => !f.startsWith('linkmap-kit/') && !(f in STALE_OK)))).toStrictEqual([]);
   }, 30_000);
   test('every file allowed still says one, so the list only shrinks', () => {
     expect(Object.keys(STALE_OK).filter((f) => !found([f]).length)).toStrictEqual([]);

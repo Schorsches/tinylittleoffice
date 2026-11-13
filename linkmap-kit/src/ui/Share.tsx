@@ -5,7 +5,7 @@ import { useStore } from '../state/store.ts';
 import { flushLink } from '../state/link.ts';
 import { Dialog } from './Dialog.tsx';
 import { LinkMeter, fullLink } from './LinkMeter.tsx';
-import { encodeMap } from '../format/index.ts';
+import { encodeDocument, documentHash } from '../format/index.ts';
 import { simplify } from '../map/simplify.ts';
 export function SimplifyPanel({ close }: { close: () => void }) {
   const t = useT(),
@@ -22,7 +22,7 @@ export function SimplifyPanel({ close }: { close: () => void }) {
         {doc.features.reduce((n, f) => n + f.coords.length, 0)} → {preview.features.reduce((n, f) => n + f.coords.length, 0)}{' '}
         {t('vertices')}
       </p>
-      <LinkMeter length={fullLink('#/v1/' + encodeMap(preview)).length} />
+      <LinkMeter length={fullLink(documentHash(encodeDocument(preview))).length} />
       <button
         className="primary"
         onClick={() => {
@@ -46,7 +46,7 @@ export function Share({ close, password }: { close: () => void; password: () => 
     let active = true;
     void flushLink()
       .then((hash) => {
-        if (active && hash) setLink(fullLink(hash));
+        if (active && hash) setLink(fullLink(hash.startsWith('#/view/') ? hash : hash.replace(/^#\//, '#/view/')));
       })
       .catch(() => setMessage(t('linkError')));
     return () => {
@@ -67,6 +67,7 @@ export function Share({ close, password }: { close: () => void; password: () => 
   return (
     <Dialog title={t('share')} close={close}>
       <p>{t(locker ? 'sealedNotice' : 'shareNotice')}</p>
+      <p className="muted">{t('shareSnapshot')}</p>
       <label>
         {t('share')}
         <textarea ref={input} rows={3} value={link} readOnly />

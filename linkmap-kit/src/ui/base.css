@@ -1,20 +1,28 @@
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/fonts/IBMPlexSans-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
 :root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   color-scheme: light dark;
   --bg: #fff;
-  --surface: #f4f6f4;
-  --fg: #172d28;
-  --muted: #52635e;
-  --border: #d5dfda;
+  --surface: #f6f8f7;
+  --fg: #15242e;
+  --muted: #66737d;
+  --border: #dde4e5;
   --accent: #15604c;
+  --user-accent: #15604c;
+  --on-user-accent: white;
   --tint: #e9f3ed;
-  --danger: #ac2525;
+  --danger: #b12b2b;
   background: var(--bg);
   color: var(--fg);
   font-synthesis: none;
@@ -35,76 +43,84 @@ select {
   font: inherit;
 }
 button,
-select {
+select,
+summary {
   min-block-size: 44px;
-  min-inline-size: 44px;
 }
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-inline-size: 44px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  padding: 0.55rem 0.8rem;
-  color: var(--fg);
+  padding: 10px 14px;
   background: var(--bg);
+  color: var(--fg);
   cursor: pointer;
+  line-height: 1.3;
 }
 button:hover {
-  background: var(--tint);
+  background: var(--surface);
 }
 button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
 button[aria-pressed='true'] {
   background: var(--tint);
-  border-color: var(--accent);
   color: var(--accent);
+  border-color: var(--accent);
 }
 button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+  background: var(--user-accent);
+  color: var(--on-user-accent);
+  border-color: var(--user-accent);
+  font-weight: 600;
 }
-button.danger {
-  color: var(--danger);
+button.primary .icon {
+  filter: var(--accent-icon-filter, invert(1));
 }
 input,
 textarea,
 select {
-  background: var(--bg);
-  color: var(--fg);
+  inline-size: 100%;
   border: 1px solid var(--border);
   border-radius: 7px;
-  padding: 0.65rem;
-  max-inline-size: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 10px 12px;
+  min-block-size: 40px;
 }
-input:not([type='radio']):not([type='range']),
-textarea {
-  inline-size: 100%;
+input[type='radio'],
+input[type='checkbox'] {
+  inline-size: 20px;
+  min-block-size: 20px;
+  block-size: 20px;
 }
 textarea {
   resize: vertical;
-  min-block-size: 75px;
+  min-block-size: 94px;
+  line-height: 1.45;
 }
 label {
   display: block;
-  font-size: 0.85rem;
+  font-size: 14px;
   font-weight: 600;
-  margin-block: 0.7rem;
+  margin-block: 0 23px;
 }
 label input,
-label textarea {
+label textarea,
+label select {
   display: block;
-  margin-block-start: 0.35rem;
   font-weight: 400;
+  margin-block-start: 8px;
 }
-small,
-.muted {
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.6;
-}
-p {
-  line-height: 1.55;
+input[type='color'] {
+  inline-size: 54px;
+  min-inline-size: 54px;
+  padding: 5px;
 }
 h1,
 h2,
@@ -113,27 +129,76 @@ p {
   overflow-wrap: anywhere;
 }
 h2 {
-  font-size: 1.05rem;
+  font-size: 20px;
+  line-height: 1.25;
 }
 h3 {
-  font-size: 1rem;
+  font-size: 16px;
+}
+.muted,
+small {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+p {
+  line-height: 1.5;
 }
 fieldset {
   border: 0;
   padding: 0;
-  margin-block: 1rem;
+  margin: 0 0 24px;
 }
 legend {
-  font-size: 0.85rem;
+  font-size: 14px;
   font-weight: 600;
+  margin-block-end: 10px;
 }
-summary {
-  cursor: pointer;
-  padding-block: 0.65rem;
-  color: var(--muted);
-  font-size: 0.8rem;
+.icon {
+  inline-size: 20px;
+  block-size: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.icon-button {
+  inline-size: 44px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+}
+.text-button {
+  color: var(--accent);
+  border: 0;
+  justify-content: flex-start;
+  padding-inline: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 :focus-visible {
-  outline: 3px solid #3186ce;
+  outline: 3px solid #347ab8;
   outline-offset: 3px;
+}
+.preserve-lines {
+  white-space: pre-wrap;
+}
+.skip {
+  position: absolute;
+  inset-block-start: -100px;
+  z-index: 20;
+}
+.skip:focus {
+  inset-block-start: 10px;
+  background: var(--bg);
+  padding: 12px;
+}
+.gate {
+  margin: auto;
+  max-inline-size: 460px;
+  padding: 28px;
+}
+.gate button {
+  margin: 5px;
 }

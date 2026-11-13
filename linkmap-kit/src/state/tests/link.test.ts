@@ -1,8 +1,65 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { startLinkSync, flushLink } from '../link.ts';
 import { useStore } from '../store.ts';
-import { emptyDoc, encodeMap, toHash, payloadOf } from '../../format/index.ts';
+import {
+  emptyDoc,
+  encodeMap,
+  toHash,
+  payloadOf,
+  encodeDocument,
+  documentHash,
+  documentPayload,
+  decodeDocument,
+  defaultSettings,
+  encodeProtectedDocument,
+  newLocker,
+} from '../../format/index.ts';
 afterEach(() => vi.useRealTimers());
+it('loads v2 visitor links and preserves metadata and visitor mode when flushing', async () => {
+  const doc = { ...emptyDoc(), title: 'Visitor map', settings: { ...defaultSettings, preset: 'event' as const } };
+  let hash = documentHash(encodeDocument(doc)).replace('#/', '#/view/');
+  const stop = startLinkSync({
+    read: () => hash,
+    write: (h) => {
+      hash = h;
+    },
+    listen: () => () => {},
+  });
+  try {
+    expect(useStore.getState().mode).toBe('view');
+    expect(useStore.getState().doc).toEqual(doc);
+    await flushLink();
+    expect(hash).toMatch(/^#\/view\/v2\//);
+    expect(decodeDocument(documentPayload(hash.replace('#/view/', '#/'))!)).toEqual(doc);
+  } finally {
+    stop();
+  }
+});
+
+it('gates protected v2 visitor documents without exposing their content', async () => {
+  const doc = { ...emptyDoc(), title: 'Private event', settings: defaultSettings };
+  const payload = await encodeProtectedDocument(doc, await newLocker('four private map words', 1000));
+  const hash = documentHash(payload).replace('#/', '#/view/');
+  const writes: string[] = [];
+  const stop = startLinkSync({
+    read: () => hash,
+    write: (h) => {
+      writes.push(h);
+    },
+    listen: () => () => {},
+  });
+  try {
+    expect(useStore.getState().mode).toBe('view');
+    expect(useStore.getState().status).toBe('needs-password');
+    expect(useStore.getState().doc).toEqual(emptyDoc());
+    expect(useStore.getState().payload).toBe(payload);
+    expect(await flushLink()).toBe('');
+    expect(writes).toEqual([]);
+  } finally {
+    stop();
+  }
+});
+
 it('debounces edits and handles hostile hash changes without overwriting them', async () => {
   vi.useFakeTimers();
   let hash = '';

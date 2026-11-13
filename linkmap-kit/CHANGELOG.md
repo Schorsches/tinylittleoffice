@@ -1,5 +1,21 @@
 # Changelog
 
+## Kartenatelier integration — 2026-11-13
+
+- Integrated the prepared Kartenatelier commit onto the dependency-policy baseline without changing either lockfile.
+- Fixed the office suite's workflow inventory and scoped its removed-feature vocabulary lint to that product.
+- Added v2 visitor-link synchronization and protected-document gating regressions.
+- Extended the browser privacy guard to cover both link versions and visitor URLs.
+
+## Kartenatelier — 2026-11-01
+
+- Implemented selected design direction 1 with content outline, map toolbar and contextual inspector.
+- Added addresses, categories, service tags, display-only hours, custom colors and appearance settings.
+- Added visitor search and category/service filters, mobile map/list views and touch-visible drawing completion.
+- Added downloadable CSV template, local CSV validation and lossless native extended GeoJSON exchange.
+- Added v2 metadata links and protected snapshots while preserving all v1 codec and crypto tests.
+- Added locally hosted IBM Plex Sans and Phosphor icons; no new remote origins.
+
 ## 1.0.0 — 2026-11-01
 
 - Implemented map editing, feature descriptions and colours, undo/redo and live fragment links.

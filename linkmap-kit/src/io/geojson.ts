@@ -1,4 +1,13 @@
-import { emptyDoc, LIMITS, PALETTE, problems, type Feature, type MapDoc, type LngLat } from '../format/index.ts';
+import {
+  emptyDoc,
+  LIMITS,
+  PALETTE,
+  problems,
+  validDocument,
+  type AtlasFeature as Feature,
+  type AtlasDoc as MapDoc,
+  type LngLat,
+} from '../format/index.ts';
 export interface ImportResult {
   doc: MapDoc;
   skipped: string[];
@@ -15,7 +24,7 @@ export function limited(s: unknown, max: number) {
   return out;
 }
 export function validateImport(features: Feature[], skipped: string[], title = ''): ImportResult {
-  const doc = emptyDoc();
+  const doc: MapDoc = emptyDoc();
   doc.title = limited(title, LIMITS.titleBytes);
   let total = 0;
   for (const f of features) {
@@ -103,7 +112,21 @@ export function fromGeoJson(text: string): ImportResult {
         typeof props.color === 'number' && Number.isInteger(props.color) && props.color >= 0 && props.color < PALETTE.length
           ? (props.color as Feature['color'])
           : 0;
-      features.push({ kind, coords, name, note, color });
+      const candidate: Feature = { kind, coords, name, note, color };
+      if (props.customColor !== undefined) {
+        if (typeof props.customColor === 'string' && /^#[0-9a-f]{6}$/i.test(props.customColor)) candidate.customColor = props.customColor;
+        else skipped.push('customColor: invalid');
+      }
+      if (props.info !== undefined) {
+        const test = { ...emptyDoc(), features: [{ ...candidate, info: props.info }] };
+        if (validDocument(test)) {
+          const info = test.features[0]?.info;
+          if (info) candidate.info = info;
+        } else skipped.push('info: unsupported or invalid');
+      }
+      for (const key of Object.keys(props))
+        if (!['name', 'note', 'description', 'color', 'info', 'customColor'].includes(key)) skipped.push('property: ' + key);
+      features.push(candidate);
     } catch {
       skipped.push('invalid');
     }
@@ -117,18 +140,38 @@ export function fromGeoJson(text: string): ImportResult {
   };
   if (v.type === 'FeatureCollection' && Array.isArray(v.features)) v.features.forEach(item);
   else item(value);
-  return validateImport(features, skipped, typeof v.name === 'string' ? v.name : '');
+  const result = validateImport(features, skipped, typeof v.name === 'string' ? v.name : '');
+  if (v.linkmap !== undefined) {
+    const meta = record(v.linkmap);
+    if (meta?.format === 'atlas-v2') {
+      const candidate = {
+        ...result.doc,
+        ...(meta.settings !== undefined ? { settings: meta.settings } : {}),
+        ...(meta.view !== undefined ? { view: meta.view } : {}),
+      };
+      if (validDocument(candidate)) result.doc = candidate;
+      else result.skipped.push('settings: invalid');
+    } else result.skipped.push('linkmap: unsupported profile');
+  }
+  return result;
 }
 export function toGeoJson(doc: MapDoc): string {
   return JSON.stringify(
     {
       type: 'FeatureCollection',
       name: doc.title,
+      linkmap: { format: 'atlas-v2', view: doc.view, ...(doc.settings ? { settings: doc.settings } : {}) },
       features: doc.features.map((f) => {
         const c = f.coords.map((p) => [...p]);
         return {
           type: 'Feature',
-          properties: { name: f.name, note: f.note, color: f.color },
+          properties: {
+            name: f.name,
+            note: f.note,
+            color: f.color,
+            ...(f.info ? { info: f.info } : {}),
+            ...(f.customColor ? { customColor: f.customColor } : {}),
+          },
           geometry:
             f.kind === 'point'
               ? { type: 'Point', coordinates: c[0] }

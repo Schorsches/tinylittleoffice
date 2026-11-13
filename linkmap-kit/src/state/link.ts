@@ -1,4 +1,4 @@
-import { decodeMap, emptyDoc, encodeMap, encodeSealed, payloadOf, toHash } from '../format/index.ts';
+import { decodeDocument, emptyDoc, encodeDocument, encodeProtectedDocument, documentPayload, documentHash } from '../format/index.ts';
 import { useStore } from './store.ts';
 export interface LinkEnvironment {
   read(): string;
@@ -23,12 +23,14 @@ export function startLinkSync(env: LinkEnvironment = browser) {
     clearTimeout(timer);
     generation++;
     loading = true;
-    const payload = payloadOf(env.read());
+    const raw = env.read().replace(/^#\/view\//, '#/');
+    const payload = documentPayload(raw);
+    useStore.setState({ mode: env.read().startsWith('#/view/') ? 'view' : 'edit' });
     try {
-      if (payload?.startsWith('E'))
+      if (payload?.startsWith('E') || payload?.startsWith('2E'))
         useStore.setState({ doc: emptyDoc(), locker: null, status: 'needs-password', payload, selected: null, past: [], future: [] });
       else {
-        useStore.getState().replaceDoc(payload ? decodeMap(payload) : emptyDoc());
+        useStore.getState().replaceDoc(payload ? decodeDocument(payload) : emptyDoc());
         useStore.setState({ payload: payload ?? '' });
       }
     } catch {
@@ -46,10 +48,10 @@ export function startLinkSync(env: LinkEnvironment = browser) {
         const token = generation;
         const s = useStore.getState();
         if (s.status !== 'ready') return '';
-        const payload = s.locker ? await encodeSealed(s.doc, s.locker) : encodeMap(s.doc);
+        const payload = s.locker ? await encodeProtectedDocument(s.doc, s.locker) : encodeDocument(s.doc);
         if (token !== generation) continue;
-        const hash = toHash(payload);
-        env.write(hash);
+        const hash = documentHash(payload);
+        env.write(s.mode === 'view' ? hash.replace(/^#\//, '#/view/') : hash);
         useStore.setState({ payload });
         return hash;
       }
