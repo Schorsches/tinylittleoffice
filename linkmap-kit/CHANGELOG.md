@@ -1,5 +1,13 @@
 # Changelog
 
+## Local save transactions — 2026-11-13
+
+- Saved map snapshots and the selected language in one IndexedDB transaction, rolling both back on failure.
+- Rejected saves if the map or password state changes during link generation; protected snapshots retain generic titles.
+- Serialized local storage operations and offline registration within an app instance so prior jobs finish before Forget.
+- Prevented duplicate saves and disabled conflicting dialog actions while a job runs.
+- Included waiting/installing app workers in offline unregistration when forgetting.
+
 ## Link capacity and sharing recovery — 2026-11-13
 
 - Checked edits against actual codec round trips and packed capacity before committing them, with headroom for passwords.

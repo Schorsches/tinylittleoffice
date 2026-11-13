@@ -76,12 +76,15 @@ test('share, password, import, save and forget work under production CSP', async
   await page.getByRole('button', { name: 'Save on this device' }).click();
   await expect(page.getByRole('dialog').getByRole('status')).toContainText('Map saved on this device');
   const records = await page.evaluate(readSavedRecords);
+  expect(records).toHaveLength(2);
+  expect(records).toContainEqual({ language: 'en' });
   expect(JSON.stringify(records)).not.toContain('My private map');
   expect(JSON.stringify(records)).not.toContain('four random words');
   expect(JSON.stringify(records)).not.toContain('Start');
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: 'Forget everything' }).click();
   await expect(page.locator('.saved-list li')).toHaveCount(0);
+  expect(await page.evaluate(readSavedRecords)).toEqual([]);
 });
 
 test('no storage before opt-in; responsive keyboard workflow, undo and offline shell', async ({ page }) => {
