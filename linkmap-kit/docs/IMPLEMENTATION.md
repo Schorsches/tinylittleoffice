@@ -212,3 +212,36 @@ Manual review: save a protected extended map, reopen it and verify metadata and 
 language and reload. Try repeated Save clicks and ensure one record appears. Forget all data and verify the list stays
 empty after another language change. Test offline opt-in followed by Forget, including a waiting app update. Simulate
 an unavailable/quota-limited database and confirm the error does not leave half a save and a later retry can succeed.
+
+## Repository release-validation repairs — 2026-11-14
+
+Built on merged PR #7 (`82dcf4d`). The previously recorded root Playwright type conflict is resolved by aligning the
+existing `@playwright/test` and `playwright` pins to 1.64.1. The accessibility adapter, runner and Vitest provider now
+share one `playwright-core@1.64.1`; no casts, skipped type checks, overrides or new dependencies are needed. The root
+dependency page is regenerated. Both lockfiles passed the release-age gate before installation (439 distinct exact
+versions, zero age violations); the standalone Linkmap manifest and lockfile are unchanged.
+
+The calendar assertion that expected UTC while reading the machine's default zone now explicitly supplies UTC.
+Three additional cases verify UTC, Europe/Berlin and America/New_York viewers without depending on the host zone.
+The original failure was reproduced with `TZ=Europe/Berlin` before the repair. No calendar runtime behavior changes.
+
+- Root `npm run lint`: passes, including TypeScript, formatting, dead-export checks and all 36 lint/style/scroll tests.
+- Root `npm run typecheck`: passes, including both Workers' generated types and checks.
+- Root `npm run build:site`: passes its builds and budgets. This is a build check, not a deployment; no site was published.
+- Calendar test file: all 21 cases pass with `TZ=UTC` and again with `TZ=Europe/Berlin`.
+- Full root unit run with one worker: 1,266 pass, one skip, one fail out of 1,268. The only remaining failure is the
+  card-rendering test, which cannot find the pinned Chromium Headless Shell executable. No product assertion in that
+  test ran. The earlier CLI/property timeout cases and the timezone case pass in this run.
+- Linkmap `npm run check`: all 91 tests in 22 files, TypeScript, ESLint and Prettier pass. Its production build and
+  budgets pass (approximately 89.9 KiB initial JavaScript and 14.1 KiB CSS gzip).
+- All ten Linkmap production browser tests were retried with `/usr/bin/chromium`: all stop at browser launch with
+  `socket() failed: Operation not permitted`. Installing Playwright's pinned Headless Shell was also attempted, but
+  its download returned invalid/truncated archives. No browser assertions, screenshots, Lighthouse scores or fresh
+  visual pass are claimed. Browser validation remains required in a working browser environment.
+- All six release-age policy tests pass. Root production audit reports zero vulnerabilities. The full root audit
+  still reports one high and six moderate development-tool findings across Vitest/Cloudflare tooling and their
+  dependencies; this narrow compatibility repair does not remediate or waive them.
+
+The root lint/type gates are now green. Full release approval remains blocked by the browser-dependent checks,
+development-tool audit findings and the previously unverified Lighthouse/target-device requirements. This slice
+changes development tooling, tests and documentation only; no Linkmap runtime, format, privacy or network policy changes.
