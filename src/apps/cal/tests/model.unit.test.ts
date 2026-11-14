@@ -163,7 +163,17 @@ test("a new span goes in date order; a time written into a calendar with no zone
   const utc = '- 2027-03-01 12:00: a\n';
   expect(writeZone(readCal(parse(utc), 'UTC'), 'Asia/Tokyo')).toEqual({ zone: 'UTC', ops: [] });
   expect(writeZone(readCal(parse(utc), 'America/New_York'), 'Asia/Tokyo')).toEqual({ zone: 'America/New_York', ops: [] });
-  expect(run(utc, (doc) => putItem(doc, readCal(doc), null, timed, 'Asia/Tokyo'))).toBe('- 2027-03-01 00:00-01:00: Call\n' + utc);
+  expect(run(utc, (doc) => putItem(doc, readCal(doc, 'UTC'), null, timed, 'Asia/Tokyo'))).toBe('- 2027-03-01 00:00-01:00: Call\n' + utc);
+});
+
+test.each([
+  ['UTC', '2027-03-01 00:00-01:00'],
+  ['Europe/Berlin', '2027-03-01 01:00-02:00'],
+  ['America/New_York', '2027-02-28 19:00-20:00'],
+])('a calendar without an explicit zone writes existing timed entries in the supplied viewer zone: %s', (zone, stamp) => {
+  const input = '- 2027-03-01 12:00: a\n';
+  const timed = { kind: 't' as const, start: Date.UTC(2027, 2, 1, 0, 0) / 60000, dur: 60, color: '', label: [{ t: 'Call' }], done: 0 };
+  expect(run(input, (doc) => putItem(doc, readCal(doc, zone), null, timed, 'Asia/Tokyo'))).toBe(`- ${stamp}: Call\n${input}`);
 });
 
 test('edit, move, resize, remove, legend and view, each as operations that undo exactly', () => {
