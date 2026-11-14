@@ -1,22 +1,27 @@
 import { documentHash } from '../format/index.ts';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useT, getLanguage } from '../i18n/index.ts';
-import { useStore } from '../state/store.ts';
-import { flushLink } from '../state/link.ts';
+import { savedSnapshot } from '../state/saved-snapshot.ts';
 import { Dialog } from './Dialog.tsx';
-import { list, save, rename, remove, forgetEverything, saveLanguage, enableOffline, type SavedMap } from '../storage/saved.ts';
+import { list, save, rename, remove, forgetEverything, enableOffline, type SavedMap } from '../storage/saved.ts';
 export function Saved({ close }: { close: () => void }) {
   const t = useT(),
     [maps, setMaps] = useState<SavedMap[] | null>(null),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [waiting, setWaiting] = useState<ServiceWorker | null>(null);
+  const running = useRef(false);
   const run = (job: () => Promise<unknown>) => {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
     setError('');
     void job()
       .catch(() => setError(t('storageError')))
-      .finally(() => setBusy(false));
+      .finally(() => {
+        running.current = false;
+        setBusy(false);
+      });
   };
   return (
     <Dialog title={t('saved')} close={close}>
@@ -27,11 +32,8 @@ export function Saved({ close }: { close: () => void }) {
           disabled={busy}
           onClick={() =>
             run(async () => {
-              const hash = await flushLink();
-              if (!hash) throw Error('unavailable');
-              const s = useStore.getState();
-              await save({ title: s.locker ? t('protected') : s.doc.title, payload: s.payload });
-              await saveLanguage(getLanguage());
+              const snapshot = await savedSnapshot(t('protected'));
+              await save(snapshot, getLanguage());
               setMaps(await list());
               setError(t('savedOk'));
             })
@@ -50,6 +52,7 @@ export function Saved({ close }: { close: () => void }) {
             <small>{new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(m.savedAt)}</small>
             <div className="actions">
               <button
+                disabled={busy}
                 onClick={() => {
                   location.hash = documentHash(m.payload);
                   close();
@@ -58,6 +61,7 @@ export function Saved({ close }: { close: () => void }) {
                 {t('open')}
               </button>
               <button
+                disabled={busy}
                 onClick={() => {
                   const title = prompt(t('rename'), m.title);
                   if (title !== null)
@@ -71,6 +75,7 @@ export function Saved({ close }: { close: () => void }) {
               </button>
               <button
                 className="danger"
+                disabled={busy}
                 onClick={() =>
                   run(async () => {
                     await remove(m.id);
@@ -85,6 +90,7 @@ export function Saved({ close }: { close: () => void }) {
         ))}
       </ul>
       <button
+        disabled={busy}
         onClick={() =>
           run(async () => {
             const reg = await enableOffline();
@@ -115,6 +121,7 @@ export function Saved({ close }: { close: () => void }) {
             run(async () => {
               await forgetEverything();
               setMaps([]);
+              setWaiting(null);
             });
         }}
       >
@@ -122,6 +129,7 @@ export function Saved({ close }: { close: () => void }) {
       </button>
       {waiting && (
         <button
+          disabled={busy}
           onClick={() => {
             navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
             waiting.postMessage('activate');

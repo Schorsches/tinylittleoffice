@@ -180,3 +180,35 @@ handles missing Clipboard APIs, rejected promises and synchronous exceptions.
 Manual review: import a file with 600 points each holding a 4,000-byte note, try Add or Replace and confirm that
 the existing map and undo history remain unchanged. Reduce the source and retry. Verify normal simplification,
 Cancel and undo after Apply. Deny clipboard access and confirm the link is selected with manual-copy instructions.
+
+## Local-save transaction validation — 2026-11-13
+
+Built on merged PR #6 (`7949af5`). The Save action captures a coherent title/payload pair after link generation;
+navigation, document edits or password changes during that work reject the save rather than switching its content.
+Protected v1/v2 snapshots use the generic protected-map title. The storage layer copies only the intended fields.
+Map and language writes share one IndexedDB transaction, with explicit abort handling for synchronous put failures.
+The previous saved-record shape and opt-in behavior remain compatible; no migration is required.
+
+Local storage reads/writes and offline registration run in request order within one app instance. The queue recovers
+after a failed job. Persist-language checks consent when its queued job executes, so an earlier saved setting cannot
+recreate settings after Forget. The UI no longer performs a separate language write after Save. The saved-map dialog
+guards duplicate jobs synchronously and disables Open/Rename/Delete/offline/Forget actions while busy. Forget also
+unregisters matching waiting/installing workers and clears its pending-update control.
+
+- `npm run check`: TypeScript, ESLint, Prettier and 91 tests in 22 files pass.
+- `npm run build`: passes existing budgets; approximately 89.9 KiB initial JavaScript and 14.1 KiB total CSS gzip.
+- Ten new regressions cover combined map/language saves, asynchronous transaction aborts, synchronous put failures,
+  queue recovery, Save/Forget/language ordering, offline-registration ordering, protected v1/v2 snapshots, navigation
+  during encryption, duplicate jobs, conflicting controls and error/retry behavior.
+- The existing production save/forget flow now checks that one map plus its language record exist after Save and
+  that no records remain after Forget. The ten browser tests still require a browser-capable environment; the known
+  Chromium launch restriction remains unresolved. No fresh browser or visual pass is claimed.
+- Ordering applies to calls in this JavaScript instance, not a global lock across other tabs. IndexedDB transaction
+  atomicity covers the map/settings writes; cache and service-worker cleanup remain separate browser operations.
+- No dependencies, lockfiles, link byte formats, crypto, CSP or remote hosts changed. All persistence remains explicit
+  and local. Existing root-suite issues remain outside this slice and were not revalidated.
+
+Manual review: save a protected extended map, reopen it and verify metadata and password protection; change the saved
+language and reload. Try repeated Save clicks and ensure one record appears. Forget all data and verify the list stays
+empty after another language change. Test offline opt-in followed by Forget, including a waiting app update. Simulate
+an unavailable/quota-limited database and confirm the error does not leave half a save and a later retry can succeed.
