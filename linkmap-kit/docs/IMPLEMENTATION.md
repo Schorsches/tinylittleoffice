@@ -245,3 +245,37 @@ The original failure was reproduced with `TZ=Europe/Berlin` before the repair. N
 The root lint/type gates are now green. Full release approval remains blocked by the browser-dependent checks,
 development-tool audit findings and the previously unverified Lighthouse/target-device requirements. This slice
 changes development tooling, tests and documentation only; no Linkmap runtime, format, privacy or network policy changes.
+
+## Development-tool audit remediation — 2026-11-14
+
+Built on merged PR #8 (`f8c090c`). Three existing root development dependencies are updated, without adding direct
+dependencies or changing the standalone Linkmap manifest/lockfile:
+
+| Package | Before | After | Publication of selected version |
+| --- | --- | --- | --- |
+| `vitest` | 5.0.3 | 5.0.5 | 2026-10-15 |
+| `@vitest/browser-playwright` | 5.0.3 | 5.0.5 | 2026-10-15 |
+| `wrangler` | 4.149.0 | 4.156.0 | 2026-10-29 |
+
+The refreshed root graph uses `miniflare@5.20261023.3-beta` and `undici@7.30.1`; all Vitest components align at 5.0.5.
+The root full audit falls from one high/six moderate findings to zero. Linkmap's separate full audit still reports
+nine moderate findings through its unchanged ESLint/typescript-eslint/minimatch graph. Both production-only audits
+report zero vulnerabilities. These are the npm audit results at preparation time, not a waiver of future findings.
+
+The remaining lint-tool remediation is blocked: `eslint@10.15.0` was published on 2026-11-13 at 21:33:34.115 UTC and
+becomes eligible under the repository policy at 2026-11-20T21:33:34.115Z (22:33:34.115 CET). Its older eligible versions
+still require minimatch 10.x. The latest observed `@typescript-eslint/typescript-estree@8.72.2` also requires
+`minimatch: ^10.2.2`; it does not yet select the fixed 11.x line. Although minimatch 11.0.5 itself is old enough,
+forcing it would override those declared major-version ranges. No such override, downgrade or policy exception is
+introduced. Recheck compatible upstream fixes and exact release timestamps before changing that graph.
+
+- Release-age gate before installation: all 439 distinct locked versions pass; all six policy tests pass.
+- Root lint (including 36 tests), full typecheck/Worker type generation and site build/budgets pass.
+- Full root unit run with one worker: 1,267 pass and one fail out of 1,268. The remaining card-rendering case cannot
+  find the pinned Headless Shell executable and stops before its product assertions; no test exclusions were added.
+- Linkmap check passes all 91 tests, TypeScript, ESLint and formatting; build/budgets remain approximately
+  89.9 KiB initial JavaScript and 14.1 KiB CSS gzip.
+- Browser-dependent validation remains blocked as described above; no new browser, visual or Lighthouse pass is claimed.
+
+No application source, codecs, crypto, CSP, runtime hosts or storage behavior changes. Dependency documentation is
+regenerated. No site is published. Full release approval still needs browser/device checks and compatible lint-tool fixes.
