@@ -1,5 +1,12 @@
 # Changelog
 
+## Saved-record recovery — 2026-11-15
+
+- Kept the saved-map list usable when individual records have invalid dates, titles or payload envelopes.
+- Preserved raw data on read and retained individual Delete actions for unusable entries.
+- Used actual IndexedDB keys for rename/delete instead of trusting stored IDs.
+- Kept usable payloads available despite damaged metadata; documented recovery without a migration.
+
 ## Local save transactions — 2026-11-13
 
 - Saved map snapshots and the selected language in one IndexedDB transaction, rolling both back on failure.

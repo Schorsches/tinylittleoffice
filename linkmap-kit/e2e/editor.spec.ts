@@ -1,5 +1,5 @@
 import { test, expect, ready } from './fixtures.ts';
-import { readSavedRecords, databases } from '../src/storage/tests/browser.ts';
+import { readSavedRecords, databases, injectDamagedSavedRecord } from '../src/storage/tests/browser.ts';
 import { emptyDoc, decodeMap, payloadOf } from '../src/format/index.ts';
 
 test('draws points, lines and areas with mouse and reloads the live link', async ({ page }) => {
@@ -81,6 +81,14 @@ test('share, password, import, save and forget work under production CSP', async
   expect(JSON.stringify(records)).not.toContain('My private map');
   expect(JSON.stringify(records)).not.toContain('four random words');
   expect(JSON.stringify(records)).not.toContain('Start');
+  await page.evaluate(injectDamagedSavedRecord);
+  await page.getByRole('dialog').getByRole('button', { name: 'Saved maps', exact: true }).click();
+  const damaged = page.locator('.saved-list li').filter({ hasText: 'Damaged example' });
+  await expect(damaged.getByRole('button', { name: 'Open', exact: true })).toBeDisabled();
+  await expect(damaged.getByRole('button', { name: 'Rename', exact: true })).toBeDisabled();
+  await damaged.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page.locator('.saved-list li')).toHaveCount(1);
+  expect(await page.evaluate(readSavedRecords)).toHaveLength(2);
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: 'Forget everything' }).click();
   await expect(page.locator('.saved-list li')).toHaveCount(0);

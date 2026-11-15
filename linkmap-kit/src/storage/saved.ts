@@ -1,4 +1,6 @@
 import { createStore, entries, set, get, del, clear, promisifyRequest } from 'idb-keyval';
+import { readSavedEntry, record, type SavedEntry } from './records.ts';
+export type { SavedEntry } from './records.ts';
 export interface SavedMap {
   id: string;
   title: string;
@@ -19,12 +21,12 @@ function ordered<T>(action: () => Promise<T>): Promise<T> {
   );
   return result;
 }
-export function list(): Promise<SavedMap[]> {
+export function list(): Promise<SavedEntry[]> {
   return ordered(async () =>
-    (await entries<string, SavedMap>(db))
+    (await entries<IDBValidKey, unknown>(db))
       .filter(([k]) => k !== 'settings')
-      .map(([, v]) => v)
-      .sort((a, b) => b.savedAt - a.savedAt),
+      .map(([key, value]) => readSavedEntry(key, value))
+      .sort((a, b) => Number(b.savedAt !== null) - Number(a.savedAt !== null) || (b.savedAt ?? 0) - (a.savedAt ?? 0)),
   );
 }
 export async function save(entry: Pick<SavedMap, 'title' | 'payload'>, language?: Language) {
@@ -51,13 +53,14 @@ export async function save(entry: Pick<SavedMap, 'title' | 'payload'>, language?
     return id;
   });
 }
-export function rename(id: string, title: string) {
+export function rename(id: IDBValidKey, title: string) {
   return ordered(async () => {
-    const e = await get<SavedMap>(id, db);
-    if (e) await set(id, { ...e, title }, db);
+    const e = await get<unknown>(id, db);
+    if (!record(e) || !readSavedEntry(id, e).payload) throw Error('saved map unavailable');
+    await set(id, { ...e, title: title.slice(0, 400) }, db);
   });
 }
-export const remove = (id: string) => ordered(() => del(id, db));
+export const remove = (id: IDBValidKey) => ordered(() => del(id, db));
 export function forgetEverything() {
   return ordered(async () => {
     await clear(db);

@@ -251,11 +251,11 @@ changes development tooling, tests and documentation only; no Linkmap runtime, f
 Built on merged PR #8 (`f8c090c`). Three existing root development dependencies are updated, without adding direct
 dependencies or changing the standalone Linkmap manifest/lockfile:
 
-| Package | Before | After | Publication of selected version |
-| --- | --- | --- | --- |
-| `vitest` | 5.0.3 | 5.0.5 | 2026-10-15 |
-| `@vitest/browser-playwright` | 5.0.3 | 5.0.5 | 2026-10-15 |
-| `wrangler` | 4.149.0 | 4.156.0 | 2026-10-29 |
+| Package                      | Before  | After   | Publication of selected version |
+| ---------------------------- | ------- | ------- | ------------------------------- |
+| `vitest`                     | 5.0.3   | 5.0.5   | 2026-10-15                      |
+| `@vitest/browser-playwright` | 5.0.3   | 5.0.5   | 2026-10-15                      |
+| `wrangler`                   | 4.149.0 | 4.156.0 | 2026-10-29                      |
 
 The refreshed root graph uses `miniflare@5.20261023.3-beta` and `undici@7.30.1`; all Vitest components align at 5.0.5.
 The root full audit falls from one high/six moderate findings to zero. Linkmap's separate full audit still reports
@@ -279,3 +279,22 @@ introduced. Recheck compatible upstream fixes and exact release timestamps befor
 
 No application source, codecs, crypto, CSP, runtime hosts or storage behavior changes. Dependency documentation is
 regenerated. No site is published. Full release approval still needs browser/device checks and compatible lint-tool fixes.
+
+## Saved-record recovery validation — 2026-11-15
+
+Built on merged PR #9 (`e9ec11c`). Stored values are now read defensively into independent UI rows. Invalid dates
+are omitted, invalid titles fall back to Untitled, and unusable payload envelopes retain a disabled Open/Rename
+with an available Delete action. Usable envelopes remain openable even with damaged metadata. Reads do not mutate
+or discard records. Rename/Delete use the actual IndexedDB key, including non-string keys, rather than stored IDs.
+The stored record format and normal encrypted saves are unchanged. Details: [SAVED-MAPS.md](SAVED-MAPS.md).
+
+- `npm run check`: TypeScript, ESLint, Prettier and all 98 tests in 22 files pass; seven new regression cases cover
+  damaged metadata, null/non-string-key records, ID collisions, individual removal, rejected rename and UI recovery.
+- Production build/budgets pass: approximately 89.9 KiB initial JavaScript and 14.1 KiB total CSS gzip. The storage
+  envelope guard stays independent of codec imports so language restoration does not preload serialization code.
+- The existing browser save flow now seeds/deletes a damaged record and checks that the valid map/settings survive.
+  It still needs a working browser environment; no fresh browser or visual pass is claimed.
+- No dependency, lockfile, codec/crypto, CSP, host or opt-in policy changes. Previous audit/browser blockers remain.
+
+Manual review: open Saved maps with a malformed row, verify a valid row still opens, delete only the damaged row,
+and confirm other maps/language remain. For damaged metadata with usable content, open and save a fresh copy before deleting the old row. No automatic repair or migration runs.
