@@ -3,10 +3,10 @@ import { useRef, useState } from 'react';
 import { useT, getLanguage } from '../i18n/index.ts';
 import { savedSnapshot } from '../state/saved-snapshot.ts';
 import { Dialog } from './Dialog.tsx';
-import { list, save, rename, remove, forgetEverything, enableOffline, type SavedMap } from '../storage/saved.ts';
+import { list, save, rename, remove, forgetEverything, enableOffline, type SavedEntry } from '../storage/saved.ts';
 export function Saved({ close }: { close: () => void }) {
   const t = useT(),
-    [maps, setMaps] = useState<SavedMap[] | null>(null),
+    [maps, setMaps] = useState<SavedEntry[] | null>(null),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [waiting, setWaiting] = useState<ServiceWorker | null>(null);
@@ -46,27 +46,32 @@ export function Saved({ close }: { close: () => void }) {
         </button>
       </div>
       <ul className="saved-list">
-        {maps?.map((m) => (
-          <li key={m.id}>
+        {maps?.map((m, i) => (
+          <li key={typeof m.key === 'string' ? `saved:${m.key}` : `other:${i}`}>
             <strong>{m.title || t('untitled')}</strong>
-            <small>{new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(m.savedAt)}</small>
+            {!m.payload && <p>{t('damaged')}</p>}
+            {m.savedAt !== null && (
+              <small>{new Intl.DateTimeFormat(getLanguage(), { dateStyle: 'medium', timeStyle: 'short' }).format(m.savedAt)}</small>
+            )}
             <div className="actions">
               <button
-                disabled={busy}
+                disabled={busy || !m.payload}
                 onClick={() => {
-                  location.hash = documentHash(m.payload);
-                  close();
+                  if (m.payload) {
+                    location.hash = documentHash(m.payload);
+                    close();
+                  }
                 }}
               >
                 {t('open')}
               </button>
               <button
-                disabled={busy}
+                disabled={busy || !m.payload}
                 onClick={() => {
                   const title = prompt(t('rename'), m.title);
                   if (title !== null)
                     run(async () => {
-                      await rename(m.id, title.slice(0, 400));
+                      await rename(m.key, title.slice(0, 400));
                       setMaps(await list());
                     });
                 }}
@@ -78,7 +83,7 @@ export function Saved({ close }: { close: () => void }) {
                 disabled={busy}
                 onClick={() =>
                   run(async () => {
-                    await remove(m.id);
+                    await remove(m.key);
                     setMaps(await list());
                   })
                 }
